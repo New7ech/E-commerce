@@ -31,15 +31,16 @@ class EmplacementController extends Controller
      */
     public function store(StoreEmplacementRequest $request)
     {
-        $request->validate(['name' => 'required|unique:categories',
-            'description' => 'nullable|string|max:255', // Validation pour la description
+        // Better to move validation to StoreEmplacementRequest
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255|unique:emplacements,name',
+            'description' => 'nullable|string|max:255',
         ]);
 
-        Emplacement::create(['name' => $request->name,
-            'description' => $request->description]);
+        Emplacement::create($validatedData);
 
         return redirect()->route('emplacements.index')
-            ->with('success', 'categorie created successfully.');
+            ->with('success', 'Emplacement créé avec succès.');
     }
 
     /**
@@ -47,7 +48,8 @@ class EmplacementController extends Controller
      */
     public function show(Emplacement $emplacement)
     {
-        //
+        // Optional: return view('emplacements.show', compact('emplacement'));
+        return redirect()->route('emplacements.edit', $emplacement); // Or redirect to edit
     }
 
     /**
@@ -55,7 +57,7 @@ class EmplacementController extends Controller
      */
     public function edit(Emplacement $emplacement)
     {
-        //
+        return view('emplacements.edit', compact('emplacement'));
     }
 
     /**
@@ -63,7 +65,16 @@ class EmplacementController extends Controller
      */
     public function update(UpdateEmplacementRequest $request, Emplacement $emplacement)
     {
-        //
+        // Better to move validation to UpdateEmplacementRequest
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255|unique:emplacements,name,' . $emplacement->id,
+            'description' => 'nullable|string|max:255',
+        ]);
+
+        $emplacement->update($validatedData);
+
+        return redirect()->route('emplacements.index')
+            ->with('success', 'Emplacement mis à jour avec succès.');
     }
 
     /**
@@ -71,6 +82,13 @@ class EmplacementController extends Controller
      */
     public function destroy(Emplacement $emplacement)
     {
-        //
+        if ($emplacement->articles()->count() > 0) {
+            return redirect()->route('emplacements.index')
+                ->with('error', 'Impossible de supprimer l\'emplacement car il est associé à des articles.');
+        }
+        $emplacement->delete();
+
+        return redirect()->route('emplacements.index')
+            ->with('success', 'Emplacement supprimé avec succès.');
     }
 }

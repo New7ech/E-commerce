@@ -22,10 +22,14 @@ class FournisseurFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company,
+            'name' => $this->faker->name, // Use name for person's name as per controller validation
+            'nom_entreprise' => $this->faker->company,
+            'description' => $this->faker->sentence, // Added description
             'telephone' => $this->faker->phoneNumber,
             'email' => $this->faker->unique()->safeEmail,
-            'adresse' => $this->faker->address,
+            'adresse' => $this->faker->streetAddress,
+            'ville' => $this->faker->city, // Added ville
+            'pays' => $this->faker->country, // Added pays
         ];
     }
 }

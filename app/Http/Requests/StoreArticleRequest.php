@@ -29,6 +29,7 @@ class StoreArticleRequest extends FormRequest
             'category_id' => 'nullable|exists:categories,id',
             'fournisseur_id' => 'nullable|exists:fournisseurs,id',
             'emplacement_id' => 'nullable|exists:emplacements,id',
+            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Example validation
         ];
     }
 }

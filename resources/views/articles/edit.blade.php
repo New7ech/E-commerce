@@ -17,7 +17,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('articles.update', $article->id) }}" method="POST">
+            <form action="{{ route('articles.update', $article->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -80,6 +80,17 @@
                             </option>
                         @endforeach
                     </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="image_path" class="form-label">Image de l'article</label>
+                    <input type="file" name="image_path" id="image_path" class="form-control">
+                    @if ($article->image_path)
+                        <div class="mt-2">
+                            <img src="{{ Storage::url($article->image_path) }}" alt="{{ $article->name }}" style="max-height: 100px;">
+                            <p class="text-sm text-gray-500">Image actuelle. Télécharger une nouvelle image la remplacera.</p>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="mt-4">

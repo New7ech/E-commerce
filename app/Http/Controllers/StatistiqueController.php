@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use App\Models\Categorie;
 use App\Models\Facture;
+use App\Models\Order; // Added
+use App\Models\OrderItem; // Added
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -13,6 +15,7 @@ class StatistiqueController extends Controller
 {
     public function index()
     {
+        // --- Existing Stats (mostly inventory and Facture-based sales) ---
         // 1. totalArticlesInStock
         $totalArticlesInStock = Article::sum('quantite');
 
@@ -55,7 +58,7 @@ class StatistiqueController extends Controller
         }
 
 
-        // 6. bestSellingArticlesLast30Days
+        // 6. bestSellingArticlesLast30Days (Facture-based)
         $bestSellingArticlesRaw = DB::table('article_facture')
             ->select('articles.name', DB::raw('SUM(article_facture.quantite) as total_quantity_sold'))
             ->join('articles', 'article_facture.article_id', '=', 'articles.id')
@@ -69,17 +72,73 @@ class StatistiqueController extends Controller
         $bestSellingArticlesLabels = $bestSellingArticlesRaw->pluck('name')->toArray();
         $bestSellingArticlesData = $bestSellingArticlesRaw->pluck('total_quantity_sold')->toArray();
 
+        // --- New E-commerce Order Stats ---
+
+        // 7. totalEcommerceOrdersLast30Days
+        $totalEcommerceOrdersLast30Days = Order::where('created_at', '>=', Carbon::now()->subDays(30))
+                                              ->where('payment_status', 'paid') // Consider only paid orders
+                                              ->count();
+
+        // 8. totalEcommerceRevenueLast30Days
+        $totalEcommerceRevenueLast30Days = Order::where('created_at', '>=', Carbon::now()->subDays(30))
+                                               ->where('payment_status', 'paid')
+                                               ->sum('total_amount');
+
+        // 9. ecommerceSalesTrendLast30Days
+        $ecommerceSalesTrendRaw = Order::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('SUM(total_amount) as total_sales')
+            )
+            ->where('created_at', '>=', Carbon::now()->subDays(30))
+            ->where('payment_status', 'paid')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        $ecommerceSalesTrendLabels = [];
+        $ecommerceSalesTrendData = [];
+        $ecomPeriod = Carbon::now()->subDays(29);
+        for ($i = 0; $i < 30; $i++) {
+            $dateStr = $ecomPeriod->format('Y-m-d');
+            $ecommerceSalesTrendLabels[] = $ecomPeriod->format('d/m');
+            $ecomSalesDataForDate = $ecommerceSalesTrendRaw->firstWhere('date', $dateStr);
+            $ecommerceSalesTrendData[] = $ecomSalesDataForDate ? $ecomSalesDataForDate->total_sales : 0;
+            $ecomPeriod->addDay();
+        }
+
+        // 10. bestSellingEcommerceProductsLast30Days
+        $bestSellingEcommerceProductsRaw = OrderItem::select('articles.name', DB::raw('SUM(order_items.quantity) as total_quantity_sold'))
+            ->join('articles', 'order_items.article_id', '=', 'articles.id')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.created_at', '>=', Carbon::now()->subDays(30))
+            ->where('orders.payment_status', 'paid')
+            ->groupBy('articles.id', 'articles.name')
+            ->orderByDesc('total_quantity_sold')
+            ->limit(5)
+            ->get();
+
+        $bestSellingEcommerceProductsLabels = $bestSellingEcommerceProductsRaw->pluck('name')->toArray();
+        $bestSellingEcommerceProductsData = $bestSellingEcommerceProductsRaw->pluck('total_quantity_sold')->toArray();
+
 
         return view('statistiques.index', compact(
             'totalArticlesInStock',
             'articlesPerCategoryLabels',
             'articlesPerCategoryData',
             'lowStockArticles',
-            'totalSalesRevenueLast30Days',
-            'salesTrendLabels',
-            'salesTrendData',
-            'bestSellingArticlesLabels',
-            'bestSellingArticlesData'
+            'totalSalesRevenueLast30Days', // Facture-based
+            'salesTrendLabels',            // Facture-based
+            'salesTrendData',              // Facture-based
+            'bestSellingArticlesLabels',   // Facture-based
+            'bestSellingArticlesData',     // Facture-based
+
+            // E-commerce Order Stats
+            'totalEcommerceOrdersLast30Days',
+            'totalEcommerceRevenueLast30Days',
+            'ecommerceSalesTrendLabels',
+            'ecommerceSalesTrendData',
+            'bestSellingEcommerceProductsLabels',
+            'bestSellingEcommerceProductsData'
         ));
     }
 }

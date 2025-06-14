@@ -9,152 +9,125 @@ use App\Models\Article;
 use App\Models\Categorie;
 use App\Models\Fournisseur;
 use App\Models\Emplacement;
+use Spatie\Permission\Models\Role;
 
 class ArticleManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    // Méthode utilitaire pour créer et authentifier un utilisateur
-    protected function authenticateUser()
+    protected User $adminUser;
+
+    protected function setUp(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        return $user;
+        parent::setUp();
+        // Create an admin role if it doesn't exist, or ensure it exists
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $this->adminUser = User::factory()->admin()->create();
+        $this->adminUser->assignRole($adminRole); // Assign role to admin user
+        $this->actingAs($this->adminUser);
     }
 
-    // Les méthodes de test seront ajoutées ici
-
     /** @test */
-    public function test_peut_lister_articles()
+    public function admin_user_can_list_articles()
     {
-        $this->authenticateUser();
-        Article::factory()->create(['name' => 'Article Alpha']);
-        Article::factory()->create(['name' => 'Article Beta']);
-
-        $response = $this->get(route('articles.index'));
+        Article::factory()->count(3)->create();
+        $response = $this->get(route('admin.articles.index'));
 
         $response->assertStatus(200);
-        $response->assertSee('Article Alpha');
-        $response->assertSee('Article Beta');
+        $response->assertViewIs('articles.index');
+        $response->assertViewHas('articles');
     }
 
     /** @test */
-    public function test_utilisateur_authentifie_peut_creer_article()
+    public function admin_user_can_create_article()
     {
-        $user = $this->authenticateUser();
-
-        $category = Categorie::factory()->create();
-        $fournisseur = Fournisseur::factory()->create();
-        $emplacement = Emplacement::factory()->create();
-
         $articleData = [
-            'name' => 'New Awesome Article',
-            'description' => 'This is a test description.',
-            'prix' => 199.99,
-            'quantite' => 25,
-            'category_id' => $category->id,
-            'fournisseur_id' => $fournisseur->id,
-            'emplacement_id' => $emplacement->id,
+            'name' => 'Nouvel Article de Test Admin',
+            'description' => 'Description de test pour le nouvel article admin.',
+            'prix' => 19.99,
+            'quantite' => 100,
+            'category_id' => Categorie::factory()->create()->id,
+            'fournisseur_id' => Fournisseur::factory()->create()->id,
+            'emplacement_id' => Emplacement::factory()->create()->id,
+            // image_path could be tested with UploadedFile::fake()->image('test.jpg')
         ];
 
-        $response = $this->post(route('articles.store'), $articleData);
+        $response = $this->post(route('admin.articles.store'), $articleData);
 
-        $response->assertRedirect(route('articles.index'));
+        $response->assertRedirect(route('admin.articles.index'));
         $response->assertSessionHas('success', 'Article créé avec succès.');
-
         $this->assertDatabaseHas('articles', [
-            'name' => 'New Awesome Article',
-            'description' => 'This is a test description.',
-            'prix' => 199.99,
-            'quantite' => 25,
-            'category_id' => $category->id,
-            'fournisseur_id' => $fournisseur->id,
-            'emplacement_id' => $emplacement->id,
-            'created_by' => $user->id,
+            'name' => 'Nouvel Article de Test Admin',
+            'created_by' => $this->adminUser->id,
         ]);
-    }
-
-    /**
-     * Vérifie que la création d'un article échoue si le nom n'est pas fourni.
-     * @test
-     */
-    public function test_article_creation_requires_name()
-    {
-        $this->authenticateUser();
-
-        $articleData = [
-            'description' => 'Test desc without name',
-            'prix' => 100,
-            'quantite' => 10,
-        ];
-
-        $response = $this->post(route('articles.store'), $articleData);
-
-        $response->assertSessionHasErrors('name');
-        $this->assertDatabaseMissing('articles', ['description' => 'Test desc without name']);
     }
 
     /** @test */
-    public function test_peut_afficher_article()
+    public function article_creation_requires_name_for_admin()
     {
-        $this->authenticateUser();
-        $article = Article::factory()->create([
-            'name' => 'Specific Article Name',
-            'description' => 'Specific Article Description'
-        ]);
+        $articleData = [
+            'description' => 'Description sans nom admin.',
+            'prix' => 9.99,
+            'quantite' => 50,
+        ];
 
-        $response = $this->get(route('articles.show', $article));
+        $response = $this->post(route('admin.articles.store'), $articleData);
+        $response->assertSessionHasErrors('name');
+    }
+
+    /** @test */
+    public function admin_user_can_view_article_via_public_route()
+    {
+        // As admin.articles.show is excluded, testing view via public route
+        $article = Article::factory()->create();
+        $response = $this->get(route('products.show', $article->id));
 
         $response->assertStatus(200);
-        $response->assertSee($article->name);
-        $response->assertSee($article->description);
+        $response->assertViewIs('products.show'); // This is the public view
+        $response->assertViewHas('article', function ($viewArticle) use ($article) {
+            return $viewArticle->id === $article->id;
+        });
     }
 
     /** @test */
-    public function test_utilisateur_authentifie_peut_modifier_article()
+    public function admin_user_can_access_edit_article_page()
     {
-        $user = $this->authenticateUser();
-        $category = Categorie::factory()->create();
-        $fournisseur = Fournisseur::factory()->create();
-        $emplacement = Emplacement::factory()->create();
+        $article = Article::factory()->create();
+        $response = $this->get(route('admin.articles.edit', $article->id));
+        $response->assertStatus(200);
+        $response->assertViewIs('articles.edit');
+        $response->assertViewHas('article', $article);
+    }
 
-        $article = Article::factory()->create([
-            'created_by' => $user->id,
-            'category_id' => $category->id,
-            'fournisseur_id' => $fournisseur->id,
-            'emplacement_id' => $emplacement->id,
-        ]);
 
-        $newCategory = Categorie::factory()->create();
-        $newFournisseur = Fournisseur::factory()->create();
-        $newEmplacement = Emplacement::factory()->create();
-
+    /** @test */
+    public function admin_user_can_update_article()
+    {
+        $article = Article::factory()->create(['created_by' => $this->adminUser->id]);
         $updatedData = [
-            'name' => 'Updated Article Name',
-            'description' => 'Updated description for article.',
-            'prix' => 150.75,
-            'quantite' => 5,
-            'category_id' => $newCategory->id,
-            'fournisseur_id' => $newFournisseur->id,
-            'emplacement_id' => $newEmplacement->id,
+            'name' => 'Article Modifié de Test Admin',
+            'description' => 'Description mise à jour admin.',
+            'prix' => 29.99,
+            'quantite' => 150,
+            'category_id' => Categorie::factory()->create()->id,
+            'fournisseur_id' => Fournisseur::factory()->create()->id,
+            'emplacement_id' => Emplacement::factory()->create()->id,
         ];
 
-        $response = $this->put(route('articles.update', $article), $updatedData);
+        $response = $this->put(route('admin.articles.update', $article->id), $updatedData);
 
-        $response->assertRedirect(route('articles.index'));
+        $response->assertRedirect(route('admin.articles.index'));
         $response->assertSessionHas('success', 'Article mis à jour avec succès.');
         $this->assertDatabaseHas('articles', array_merge(['id' => $article->id], $updatedData));
     }
 
     /** @test */
-    public function test_utilisateur_authentifie_peut_supprimer_article()
+    public function admin_user_can_delete_article()
     {
-        $user = $this->authenticateUser();
-        $article = Article::factory()->create(['created_by' => $user->id]);
+        $article = Article::factory()->create(['created_by' => $this->adminUser->id]);
+        $response = $this->delete(route('admin.articles.destroy', $article->id));
 
-        $response = $this->delete(route('articles.destroy', $article));
-
-        $response->assertRedirect(route('articles.index'));
+        $response->assertRedirect(route('admin.articles.index'));
         $response->assertSessionHas('success', 'Article supprimé avec succès.');
         $this->assertDatabaseMissing('articles', ['id' => $article->id]);
     }

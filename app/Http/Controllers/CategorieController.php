@@ -55,7 +55,7 @@ class CategorieController extends Controller
      */
     public function edit(Categorie $categorie)
     {
-        //
+        return view('categories.edit', compact('categorie'));
     }
 
     /**
@@ -63,7 +63,17 @@ class CategorieController extends Controller
      */
     public function update(UpdateCategorieRequest $request, Categorie $categorie)
     {
-        //
+        // It's better to move validation to UpdateCategorieRequest,
+        // but for now, let's replicate similar logic as in store, adjusting for uniqueness.
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name,' . $categorie->id,
+            'description' => 'nullable|string|max:255',
+        ]);
+
+        $categorie->update($validatedData);
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Catégorie mise à jour avec succès.');
     }
 
     /**
@@ -71,6 +81,15 @@ class CategorieController extends Controller
      */
     public function destroy(Categorie $categorie)
     {
-        //
+        // Check if category is associated with any articles
+        if ($categorie->articles()->count() > 0) {
+            return redirect()->route('categories.index')
+                ->with('error', 'Impossible de supprimer la catégorie car elle est associée à des articles.');
+        }
+
+        $categorie->delete();
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Catégorie supprimée avec succès.');
     }
 }

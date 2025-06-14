@@ -7,6 +7,11 @@
             <h1>{{ $article->name }}</h1>
         </div>
         <div class="card-body">
+            @if ($article->image_path)
+                <div class="mb-4 text-center">
+                    <img src="{{ Storage::url($article->image_path) }}" alt="{{ $article->name }}" class="img-fluid rounded" style="max-height: 300px; display: inline-block;">
+                </div>
+            @endif
             <dl class="row">
                 <dt class="col-sm-3">Description :</dt>
                 <dd class="col-sm-9">{{ $article->description ?: 'N/A' }}</dd>

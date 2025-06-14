@@ -88,6 +88,25 @@
                 </li>
 
                 <li class="nav-item">
+                    <a data-bs-toggle="collapse" href="#ecommerce">
+                        <i class="fas fa-store"></i> {{-- E-commerce Icon --}}
+                    <p>Gestion E-commerce</p>
+                    <span class="caret"></span>
+                    </a>
+                    <div class="collapse" id="ecommerce">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('admin.orders.index') }}">
+                                    <i class="fas fa-shopping-cart"></i> {{-- Orders Icon --}}
+                                    <p>Commandes</p>
+                                </a>
+                            </li>
+                            {{-- We can add a direct link to public product listing or other e-commerce specific links here --}}
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
                     <a data-bs-toggle="collapse" href="#facture">
                         <i class="fas fa-money-check-alt"></i>
                     <p>Facture</p>
