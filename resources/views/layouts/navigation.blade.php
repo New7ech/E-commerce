@@ -12,9 +12,33 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
+                    <x-nav-link :href="route('home')" :active="request()->routeIs('home')">
+                        {{ __('Home') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">
+                        {{ __('Products') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.index')">
+                        {{ __('Cart') }}
+                         @php
+                            $cart = session()->get('cart', []);
+                            $cartItemCount = 0;
+                            foreach ($cart as $id => $details) {
+                                $cartItemCount += $details['quantity'] ?? 0;
+                            }
+                        @endphp
+                        @if ($cartItemCount > 0)
+                            <span class="ms-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                                {{ $cartItemCount }}
+                            </span>
+                        @endif
+                    </x-nav-link>
+                    {{-- Example for a dashboard link if user is authenticated --}}
+                    @auth
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                    @endauth
                 </div>
             </div>
 
@@ -76,9 +100,33 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
+            <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('home')">
+                {{ __('Home') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">
+                {{ __('Products') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.index')">
+                {{ __('Cart') }}
+                @php
+                    // Redefine for responsive if not already available or to be sure
+                    $cart = session()->get('cart', []);
+                    $cartItemCount = 0;
+                    foreach ($cart as $id => $details) {
+                        $cartItemCount += $details['quantity'] ?? 0;
+                    }
+                @endphp
+                @if ($cartItemCount > 0)
+                    <span class="ms-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                        {{ $cartItemCount }}
+                    </span>
+                @endif
+            </x-responsive-nav-link>
+             @auth
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+            @endauth
         </div>
 
         <!-- Responsive Settings Options -->
