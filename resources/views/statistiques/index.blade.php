@@ -9,7 +9,7 @@
         <div class="card-body">
             <!-- Summary Cards Row -->
             <div class="row mb-4">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="card">
                         <div class="card-body text-center">
                             <h5 class="card-title">Total Articles en Stock</h5>
@@ -17,15 +17,35 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="card">
                         <div class="card-body text-center">
-                            <h5 class="card-title">Revenu Total (30 derniers jours)</h5>
+                            <h5 class="card-title">Revenu Factures (30j)</h5>
                             <p class="card-text fs-2 fw-bold">{{ number_format($totalSalesRevenueLast30Days, 0, ',', ' ') }} FCFA</p>
                         </div>
                     </div>
                 </div>
+                 <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Revenu E-commerce (30j)</h5>
+                            <p class="card-text fs-2 fw-bold">{{ number_format($totalEcommerceRevenueLast30Days, 0, ',', ' ') }} FCFA</p>
+                        </div>
+                    </div>
+                </div>
             </div>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                     <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Total Commandes E-commerce (30j)</h5>
+                            <p class="card-text fs-2 fw-bold">{{ $totalEcommerceOrdersLast30Days }}</p>
+                        </div>
+                    </div>
+                </div>
+                {{-- Placeholder for another summary card if needed --}}
+            </div>
+
 
             <!-- Charts Row -->
             <div class="row mb-4">
@@ -41,7 +61,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="card">
-                        <div class="card-header">Tendances des Ventes (30 derniers jours)</div>
+                        <div class="card-header">Tendances des Ventes (Factures, 30j)</div>
                         <div class="card-body">
                             <div style="position: relative; height:350px; width:100%;">
                                 <canvas id="salesTrendChart"></canvas>
@@ -50,14 +70,36 @@
                     </div>
                 </div>
             </div>
+             <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">Tendances des Ventes E-commerce (Commandes, 30j)</div>
+                        <div class="card-body">
+                            <div style="position: relative; height:350px; width:100%;">
+                                <canvas id="ecommerceSalesTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="row mb-4">
-                 <div class="col-md-12"> <!-- Changed to full width for better bar chart display -->
+                 <div class="col-md-6">
                     <div class="card">
-                        <div class="card-header">Top 5 Meilleurs Articles Vendus (par quantité, 30j)</div>
+                        <div class="card-header">Top 5 Articles Vendus (Factures, 30j)</div>
                         <div class="card-body">
                             <div style="position: relative; height:350px; width:100%;">
                                 <canvas id="bestSellingArticlesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">Top 5 Produits E-commerce (Commandes, 30j)</div>
+                        <div class="card-body">
+                            <div style="position: relative; height:350px; width:100%;">
+                                <canvas id="bestSellingEcommerceProductsChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -159,21 +201,22 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     } else if (articlesPerCategoryCanvas) {
-        articlesPerCategoryCanvas.getContext('2d').fillText("Aucune donnée disponible pour les catégories d'articles.", 10, 50);
+        const ctx = articlesPerCategoryCanvas.getContext('2d');
+        if (ctx) ctx.fillText("Aucune donnée disponible pour les catégories d'articles.", 10, 50);
     }
 
-    // Sales Trend (Line Chart)
-    const salesTrendLabels = @json($salesTrendLabels);
-    const salesTrendData = @json($salesTrendData);
+    // Sales Trend (Facture-based Line Chart)
+    const salesTrendLabels = @json($salesTrendLabels); // Facture-based
+    const salesTrendData = @json($salesTrendData);     // Facture-based
     const salesTrendCanvas = document.getElementById('salesTrendChart');
     if (salesTrendCanvas && salesTrendLabels.length > 0 && salesTrendData.length > 0) {
-        const ctxLine = salesTrendCanvas.getContext('2d');
-        new Chart(ctxLine, {
+        const ctxLineFacture = salesTrendCanvas.getContext('2d');
+        new Chart(ctxLineFacture, {
             type: 'line',
             data: {
                 labels: salesTrendLabels,
                 datasets: [{
-                    label: 'Ventes Journalières (FCFA)',
+                    label: 'Ventes Journalières (Factures FCFA)',
                     data: salesTrendData,
                     borderColor: 'rgb(75, 192, 192)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -211,21 +254,76 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     } else if (salesTrendCanvas) {
-        salesTrendCanvas.getContext('2d').fillText("Aucune donnée disponible pour les tendances de ventes.", 10, 50);
+        const ctx = salesTrendCanvas.getContext('2d');
+        if (ctx) ctx.fillText("Aucune donnée disponible pour les tendances de ventes (Factures).", 10, 50);
     }
 
-    // Best Selling Articles (Bar Chart)
-    const bestSellingArticlesLabels = @json($bestSellingArticlesLabels);
-    const bestSellingArticlesData = @json($bestSellingArticlesData);
+     // E-commerce Sales Trend (Line Chart) - Added
+    const ecommerceSalesTrendLabels = @json($ecommerceSalesTrendLabels);
+    const ecommerceSalesTrendData = @json($ecommerceSalesTrendData);
+    const ecommerceSalesTrendCanvas = document.getElementById('ecommerceSalesTrendChart');
+    if (ecommerceSalesTrendCanvas && ecommerceSalesTrendLabels.length > 0 && ecommerceSalesTrendData.length > 0) {
+        const ctxLineEcom = ecommerceSalesTrendCanvas.getContext('2d');
+        new Chart(ctxLineEcom, {
+            type: 'line',
+            data: {
+                labels: ecommerceSalesTrendLabels,
+                datasets: [{
+                    label: 'Ventes E-commerce Journalières (FCFA)',
+                    data: ecommerceSalesTrendData,
+                    borderColor: 'rgb(255, 99, 132)', // Different color
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return value + ' FCFA'; }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('fr-FR').format(context.parsed.y) + ' FCFA';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } else if (ecommerceSalesTrendCanvas) {
+        const ctx = ecommerceSalesTrendCanvas.getContext('2d');
+        if (ctx) ctx.fillText("Aucune donnée disponible pour les tendances de ventes E-commerce.", 10, 50);
+    }
+
+
+    // Best Selling Articles (Facture-based Bar Chart)
+    const bestSellingArticlesLabels = @json($bestSellingArticlesLabels); // Facture-based
+    const bestSellingArticlesData = @json($bestSellingArticlesData);     // Facture-based
     const bestSellingArticlesCanvas = document.getElementById('bestSellingArticlesChart');
     if (bestSellingArticlesCanvas && bestSellingArticlesLabels.length > 0 && bestSellingArticlesData.length > 0) {
-        const ctxBar = bestSellingArticlesCanvas.getContext('2d');
-        new Chart(ctxBar, {
+        const ctxBarFacture = bestSellingArticlesCanvas.getContext('2d');
+        new Chart(ctxBarFacture, {
             type: 'bar',
             data: {
                 labels: bestSellingArticlesLabels,
                 datasets: [{
-                    label: 'Quantité Vendue',
+                    label: 'Quantité Vendue (Factures)',
                     data: bestSellingArticlesData,
                     backgroundColor: generateChartColors(bestSellingArticlesLabels.length),
                 }]
@@ -237,15 +335,51 @@ document.addEventListener('DOMContentLoaded', function () {
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            stepSize: 1 // Ensure integer steps for quantity
+                            stepSize: 1
                         }
                     }
                 }
             }
         });
     } else if (bestSellingArticlesCanvas) {
-        bestSellingArticlesCanvas.getContext('2d').fillText("Aucune donnée disponible pour les meilleurs articles vendus.", 10, 50);
+        const ctx = bestSellingArticlesCanvas.getContext('2d');
+        if (ctx) ctx.fillText("Aucune donnée disponible pour les meilleurs articles vendus (Factures).", 10, 50);
     }
+
+    // Best Selling E-commerce Products (Bar Chart) - Added
+    const bestSellingEcommerceProductsLabels = @json($bestSellingEcommerceProductsLabels);
+    const bestSellingEcommerceProductsData = @json($bestSellingEcommerceProductsData);
+    const bestSellingEcommerceProductsCanvas = document.getElementById('bestSellingEcommerceProductsChart');
+    if (bestSellingEcommerceProductsCanvas && bestSellingEcommerceProductsLabels.length > 0 && bestSellingEcommerceProductsData.length > 0) {
+        const ctxBarEcom = bestSellingEcommerceProductsCanvas.getContext('2d');
+        new Chart(ctxBarEcom, {
+            type: 'bar',
+            data: {
+                labels: bestSellingEcommerceProductsLabels,
+                datasets: [{
+                    label: 'Quantité Vendue (E-commerce)',
+                    data: bestSellingEcommerceProductsData,
+                    backgroundColor: generateChartColors(bestSellingEcommerceProductsLabels.length).map(color => color.replace('1)', '0.7)')), // Slightly different colors
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    } else if (bestSellingEcommerceProductsCanvas) {
+        const ctx = bestSellingEcommerceProductsCanvas.getContext('2d');
+        if (ctx) ctx.fillText("Aucune donnée disponible pour les meilleurs produits E-commerce.", 10, 50);
+    }
+
 });
 </script>
 @endsection

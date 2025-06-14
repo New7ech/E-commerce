@@ -31,8 +31,10 @@ class FournisseurController extends Controller
      */
     public function store(StoreFournisseurRequest $request)
     {
-        $request->validate(['name' => 'required|unique:categories',
-            'description' => 'nullable|string|max:255', // Validation pour la description
+        // It's better to move validation to StoreFournisseurRequest
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255|unique:fournisseurs,name',
+            'description' => 'nullable|string',
             'nom_entreprise' => 'required|string|max:255',
             'adresse' => 'required|string|max:255',
             'telephone' => 'required|string|max:20',
@@ -41,18 +43,10 @@ class FournisseurController extends Controller
             'pays' => 'required|string|max:255',
         ]);
 
-        Fournisseur::create(['name' => $request->name,
-            'description' => $request->description,
-            'nom_entreprise' => $request->nom_entreprise,
-            'adresse' => $request->adresse,
-            'telephone' => $request->telephone,
-            'email' => $request->email,
-            'ville' => $request->ville,
-            'pays' => $request->pays,
-        ]);
+        Fournisseur::create($validatedData);
 
         return redirect()->route('fournisseurs.index')
-            ->with('success', 'categorie created successfully.');
+            ->with('success', 'Fournisseur créé avec succès.');
     }
 
     /**
@@ -60,7 +54,9 @@ class FournisseurController extends Controller
      */
     public function show(Fournisseur $fournisseur)
     {
-        //
+        // Typically, show is not heavily used if edit covers it, or if index is detailed enough.
+        // For consistency, you might want a simple view.
+        return view('fournisseurs.show', compact('fournisseur')); // Assuming a show view exists or will be created.
     }
 
     /**
@@ -68,7 +64,7 @@ class FournisseurController extends Controller
      */
     public function edit(Fournisseur $fournisseur)
     {
-        //
+        return view('fournisseurs.edit', compact('fournisseur'));
     }
 
     /**
@@ -76,7 +72,22 @@ class FournisseurController extends Controller
      */
     public function update(UpdateFournisseurRequest $request, Fournisseur $fournisseur)
     {
-        //
+        // It's better to move validation to UpdateFournisseurRequest
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255|unique:fournisseurs,name,' . $fournisseur->id,
+            'description' => 'nullable|string',
+            'nom_entreprise' => 'required|string|max:255',
+            'adresse' => 'required|string|max:255',
+            'telephone' => 'required|string|max:20',
+            'email' => 'required|email|unique:fournisseurs,email,' . $fournisseur->id,
+            'ville' => 'required|string|max:255',
+            'pays' => 'required|string|max:255',
+        ]);
+
+        $fournisseur->update($validatedData);
+
+        return redirect()->route('fournisseurs.index')
+            ->with('success', 'Fournisseur mis à jour avec succès.');
     }
 
     /**
@@ -84,6 +95,13 @@ class FournisseurController extends Controller
      */
     public function destroy(Fournisseur $fournisseur)
     {
-        //
+        if ($fournisseur->articles()->count() > 0) {
+            return redirect()->route('fournisseurs.index')
+                ->with('error', 'Impossible de supprimer le fournisseur car il est associé à des articles.');
+        }
+        $fournisseur->delete();
+
+        return redirect()->route('fournisseurs.index')
+            ->with('success', 'Fournisseur supprimé avec succès.');
     }
 }

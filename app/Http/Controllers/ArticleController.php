@@ -11,6 +11,7 @@ use App\Models\Emplacement;
 use App\Models\Fournisseur;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ArticleController extends Controller
 {
@@ -51,8 +52,14 @@ class ArticleController extends Controller
      */
     public function store(StoreArticleRequest $request): \Illuminate\Http\RedirectResponse
     {
-        // Ajoute l'ID de l'utilisateur authentifié comme créateur de l'article.
-        $article = Article::create($request->validated() + ['created_by' => auth()->id()]);
+        $data = $request->validated();
+
+        if ($request->hasFile('image_path')) {
+            $path = $request->file('image_path')->store('articles', 'public');
+            $data['image_path'] = $path;
+        }
+
+        $article = Article::create($data + ['created_by' => auth()->id()]);
 
         return redirect()->route('articles.index')->with('success', 'Article créé avec succès.');
     }
@@ -91,7 +98,18 @@ class ArticleController extends Controller
      */
     public function update(UpdateArticleRequest $request, Article $article): \Illuminate\Http\RedirectResponse
     {
-        $article->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image_path')) {
+            // Delete old image if it exists
+            if ($article->image_path) {
+                Storage::disk('public')->delete($article->image_path);
+            }
+            $path = $request->file('image_path')->store('articles', 'public');
+            $data['image_path'] = $path;
+        }
+
+        $article->update($data);
 
         return redirect()->route('articles.index')->with('success', 'Article mis à jour avec succès.');
     }
@@ -107,5 +125,39 @@ class ArticleController extends Controller
         $article->delete();
 
         return redirect()->route('articles.index')->with('success', 'Article supprimé avec succès.');
+    }
+
+    /**
+     * Display a listing of the resource for public users.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\View\View
+     */
+    public function productList(Request $request): \Illuminate\View\View
+    {
+        $search = $request->input('search');
+        $category = $request->input('category');
+
+        $articles = Article::with('categorie')
+            ->when($search, fn($query, $term) => $query->searchByText($term))
+            ->when($category, fn($query, $catId) => $query->where('category_id', $catId))
+            ->latest()
+            ->paginate(10); // Paginate for better performance
+
+        $categories = Categorie::all();
+
+        return view('products.index', compact('articles', 'categories', 'search', 'category'));
+    }
+
+    /**
+     * Display the specified resource for public users.
+     *
+     * @param  string $id
+     * @return \Illuminate\View\View
+     */
+    public function productShow(string $id): \Illuminate\View\View
+    {
+        $article = Article::with('categorie', 'fournisseur', 'emplacement')->findOrFail($id);
+        return view('products.show', compact('article'));
     }
 }

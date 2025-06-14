@@ -29,6 +29,7 @@ class UpdateArticleRequest extends FormRequest
             'category_id' => 'required|exists:categories,id',
             'fournisseur_id' => 'required|exists:fournisseurs,id',
             'emplacement_id' => 'required|exists:emplacements,id',
+            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Example validation
         ];
     }
 }

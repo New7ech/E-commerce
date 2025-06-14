@@ -40,7 +40,8 @@ class Article extends Model
         'category_id',
         'fournisseur_id',
         'emplacement_id',
-        'created_by'
+        'created_by',
+        'image_path'
     ];
 
     /**
@@ -110,4 +111,11 @@ class Article extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * Get the order items associated with the article.
+     */
+    public function orderItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }
