@@ -1,697 +1,105 @@
 @extends('layouts.app')
-@section('contenus')
 
-<div class="container">
-    <div class="page-inner">
-      <div
-        class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4"
-      >
-        <div>
-          <h3 class="fw-bold mb-3">Accueil</h3>
-          <h6 class="op-7 mb-2">Application de gestion de stock</h6>
-        </div>
-        <div class="ms-md-auto py-2 py-md-0">
-          <a href="#" class="btn btn-label-info btn-round me-2">Facturation</a>
-          <a href="#" class="btn btn-primary btn-round">Ajout article</a>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-sm-6 col-md-3">
-          <div class="card card-stats card-round">
-            <div class="card-body">
-              <div class="row align-items-center">
-                <div class="col-icon">
-                  <div
-                    class="icon-big text-center icon-primary bubble-shadow-small"
-                  >
-                    <i class="fas fa-users"></i>
-                  </div>
-                </div>
-                <div class="col col-stats ms-3 ms-sm-0">
-                    <div class="numbers">
-                      <p class="card-category">Fournisseurs</p>
-                      <h4 class="card-title">{{ number_format($nombreFournisseurs, 0, ',', ' ') }}</h4>
-                    </div>
-                  </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-md-3">
-          <div class="card card-stats card-round">
-            <div class="card-body">
-              <div class="row align-items-center">
-                <div class="col-icon">
-                  <div
-                    class="icon-big text-center icon-info bubble-shadow-small"
-                  >
-                    <i class="fas fa-user-check"></i>
-                  </div>
-                </div>
-                <div class="col col-stats ms-3 ms-sm-0">
-                    <div class="numbers">
-                      <p class="card-category">Factures</p>
-                      <h4 class="card-title">{{ number_format($nombreFactures, 0, ',', ' ') }}</h4>
-                    </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-md-3">
-          <div class="card card-stats card-round">
-            <div class="card-body">
-              <div class="row align-items-center">
-                <div class="col-icon">
-                  <div
-                    class="icon-big text-center icon-success bubble-shadow-small"
-                  >
-                    <i class="fas fa-luggage-cart"></i>
-                  </div>
-                </div>
-                <div class="col col-stats ms-3 ms-sm-0">
-                  <div class="numbers">
-                    <p class="card-category">Solde des 3 jours</p>
-                    <h4 class="card-title">
-                        @foreach($facturesPar3Jours as $periode)
-                            <tr>
-                                {{-- <td>{{ $periode['periode'] }}</td> --}}
-                                <td>{{ number_format($periode['total_ttc'], 0, ',', ' ') }} FCFA</td>
-                            </tr>
-                        @endforeach
-                    </h4>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-md-3">
-          <div class="card card-stats card-round">
-            <div class="card-body">
-              <div class="row align-items-center">
-                <div class="col-icon">
-                  <div
-                    class="icon-big text-center icon-secondary bubble-shadow-small"
-                  >
-                    <i class="far fa-check-circle"></i>
-                  </div>
-                </div>
-                <div class="col col-stats ms-3 ms-sm-0">
-                    <div class="numbers">
-                      <p class="card-category">État stock</p>
-                      <h4 class="card-title">{{ $etatStock }}</h4>
-                    </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-8">
-          <div class="card card-round">
+@section('title', 'Aide & Support') {{-- Changed title --}}
+
+@section('content') {{-- Changed from contenus to content --}}
+<div class="page-header">
+    <h3 class="fw-bold mb-3">Aide & Support</h3>
+    <ul class="breadcrumbs">
+        <li class="nav-home"><a href="{{ route('dashboard') }}"><i class="icon-home"></i></a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item">Aide</li>
+    </ul>
+</div>
+
+<div class="row">
+    {{-- The original 'aide.blade.php' had a lot of statistics cards.
+         It seems like a duplicate of a dashboard. For an 'Aide' page,
+         this content might not be relevant. I will create a standard help page structure.
+         If the statistics were indeed intended for 'aide.blade.php',
+         they would need to be refactored similar to 'statistiques.index.blade.php'
+         and ensure all variables like $nombreFournisseurs, $facturesPar3Jours, etc., are passed to this view.
+         For now, creating a more typical help/FAQ page structure.
+    --}}
+    <div class="col-md-12">
+        <div class="card">
             <div class="card-header">
-              <div class="card-head-row">
-                <div class="card-title">Statistique des ventes</div>
-                <div class="card-tools">
-                  <a
-                    href="#"
-                    class="btn btn-label-success btn-round btn-sm me-2"
-                  >
-                    <span class="btn-label">
-                      <i class="fa fa-pencil"></i>
-                    </span>
-                    Export
-                  </a>
-                  <a href="#" class="btn btn-label-info btn-round btn-sm">
-                    <span class="btn-label">
-                      <i class="fa fa-print"></i>
-                    </span>
-                    Print
-                  </a>
-                </div>
-              </div>
+                <h4 class="card-title">Foire Aux Questions (FAQ)</h4>
             </div>
             <div class="card-body">
-                <div class="container">
-                    <div class="page-inner">
-
-                        <div class="chart-container" style="height: 400px;">
-                            <canvas id="statisticsChart"></canvas>
+                <div class="accordion accordion-flush" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faqHeading1">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse1" aria-expanded="false" aria-controls="faqCollapse1">
+                                Comment puis-je réinitialiser mon mot de passe ?
+                            </button>
+                        </h2>
+                        <div id="faqCollapse1" class="accordion-collapse collapse" aria-labelledby="faqHeading1" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Pour réinitialiser votre mot de passe, allez sur la page de connexion et cliquez sur le lien "Mot de passe oublié ?". Suivez les instructions envoyées à votre adresse e-mail.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faqHeading2">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse2" aria-expanded="false" aria-controls="faqCollapse2">
+                                Où puis-je voir l'historique de mes commandes ?
+                            </button>
+                        </h2>
+                        <div id="faqCollapse2" class="accordion-collapse collapse" aria-labelledby="faqHeading2" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Vous pouvez consulter l'historique de vos commandes dans la section "Profil" sous "Historique des Commandes".
+                                <a href="{{ route('profile.orders') }}" class="btn btn-link">Voir mes commandes</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faqHeading3">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse3" aria-expanded="false" aria-controls="faqCollapse3">
+                                Comment contacter le support client ?
+                            </button>
+                        </h2>
+                        <div id="faqCollapse3" class="accordion-collapse collapse" aria-labelledby="faqHeading3" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Vous pouvez contacter notre support client par email à <a href="mailto:support@example.com">support@example.com</a> ou par téléphone au +123 456 7890. Nos heures d'ouverture sont du lundi au vendredi, de 9h à 18h.
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-          </div>
         </div>
-        <div class="col-md-4">
-          <div class="card card-primary card-round">
-            @foreach($facturesPar3Jours as $periode)
+
+        <div class="card mt-4">
             <div class="card-header">
-              <div class="card-head-row">
-                <div class="card-title">Chifres d'affaire</div>
-                <div class="card-tools">
-                  <div class="dropdown">
-                    <button
-                      class="btn btn-sm btn-label-light dropdown-toggle"
-                      type="button"
-                      id="dropdownMenuButton"
-                      data-bs-toggle="dropdown"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                    >
-                      Export
-                    </button>
-                    <div
-                      class="dropdown-menu"
-                      aria-labelledby="dropdownMenuButton"
-                    >
-                      <a class="dropdown-item" href="#">Action</a>
-                      <a class="dropdown-item" href="#">Another action</a>
-                      <a class="dropdown-item" href="#"
-                        >Something else here</a
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="card-category"><td>{{ $periode['periode'] }}</td>
-              </div>
-            </div>
-            <div class="card-body pb-0">
-              <div class="mb-4 mt-2">
-                <h1><td>{{ number_format($periode['total_ttc'], 0, ',', ' ') }} FCFA</td></h1>
-              </div>
-              <div class="pull-in">
-                <canvas id="dailySalesChart"></canvas>
-              </div>
-            </div>
-            @endforeach
-
-
-
-          </div>
-          <div class="card card-round">
-            <div class="card-body pb-0">
-                <div class="h1 fw-bold float-end text-primary">
-                    {{-- +{{ round((($data->last() ?? 0) - ($data->first() ?? 0)) / max($data->first() ?: 1, 1) * 100) }}% --}}
-                </div>
-                <h2 class="mb-2">{{ number_format($totalGlobal, 0, ',', ' ') }} FCFA</h2>
-                <p class="text-muted">Ventes 7 derniers jours</p>
-                <div class="pull-in sparkline-fix">
-                    <canvas id="lineChart" height="70"></canvas>
-                </div>
-            </div>
-        </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-12">
-          <div class="card card-round">
-            <div class="card-header">
-              <div class="card-head-row card-tools-still-right">
-                <h4 class="card-title">Users Geolocation</h4>
-                <div class="card-tools">
-                  <button
-                    class="btn btn-icon btn-link btn-primary btn-xs"
-                  >
-                    <span class="fa fa-angle-down"></span>
-                  </button>
-                  <button
-                    class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card"
-                  >
-                    <span class="fa fa-sync-alt"></span>
-                  </button>
-                  <button
-                    class="btn btn-icon btn-link btn-primary btn-xs"
-                  >
-                    <span class="fa fa-times"></span>
-                  </button>
-                </div>
-              </div>
-              <p class="card-category">
-                Map of the distribution of users around the world
-              </p>
+                <h4 class="card-title">Soumettre une Demande d'Assistance</h4>
             </div>
             <div class="card-body">
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="table-responsive table-hover table-sales">
-                    <table class="table">
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div class="flag">
-                              <img
-                                src="assets/img/flags/id.png"
-                                alt="indonesia"
-                              />
-                            </div>
-                          </td>
-                          <td>Indonesia</td>
-                          <td class="text-end">2.320</td>
-                          <td class="text-end">42.18%</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="flag">
-                              <img
-                                src="assets/img/flags/us.png"
-                                alt="united states"
-                              />
-                            </div>
-                          </td>
-                          <td>USA</td>
-                          <td class="text-end">240</td>
-                          <td class="text-end">4.36%</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="flag">
-                              <img
-                                src="assets/img/flags/au.png"
-                                alt="australia"
-                              />
-                            </div>
-                          </td>
-                          <td>Australia</td>
-                          <td class="text-end">119</td>
-                          <td class="text-end">2.16%</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="flag">
-                              <img
-                                src="assets/img/flags/ru.png"
-                                alt="russia"
-                              />
-                            </div>
-                          </td>
-                          <td>Russia</td>
-                          <td class="text-end">1.081</td>
-                          <td class="text-end">19.65%</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="flag">
-                              <img
-                                src="assets/img/flags/cn.png"
-                                alt="china"
-                              />
-                            </div>
-                          </td>
-                          <td>China</td>
-                          <td class="text-end">1.100</td>
-                          <td class="text-end">20%</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="flag">
-                              <img
-                                src="assets/img/flags/br.png"
-                                alt="brazil"
-                              />
-                            </div>
-                          </td>
-                          <td>Brasil</td>
-                          <td class="text-end">640</td>
-                          <td class="text-end">11.63%</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mapcontainer">
-                    <div
-                      id="world-map"
-                      class="w-100"
-                      style="height: 300px"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-4">
-          <div class="card card-round">
-            <div class="card-body">
-              <div class="card-head-row card-tools-still-right">
-                <div class="card-title">New Customers</div>
-                <div class="card-tools">
-                  <div class="dropdown">
-                    <button
-                      class="btn btn-icon btn-clean me-0"
-                      type="button"
-                      id="dropdownMenuButton"
-                      data-bs-toggle="dropdown"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                    >
-                      <i class="fas fa-ellipsis-h"></i>
-                    </button>
-                    <div
-                      class="dropdown-menu"
-                      aria-labelledby="dropdownMenuButton"
-                    >
-                      <a class="dropdown-item" href="#">Action</a>
-                      <a class="dropdown-item" href="#">Another action</a>
-                      <a class="dropdown-item" href="#"
-                        >Something else here</a
-                      >
+                <p>Si vous n'avez pas trouvé de réponse à votre question dans la FAQ, veuillez nous envoyer un message via le formulaire ci-dessous :</p>
+                <form>
+                    <div class="form-group">
+                        <label for="help_name">Votre Nom</label>
+                        <input type="text" class="form-control" id="help_name" placeholder="Entrez votre nom">
                     </div>
-                  </div>
-                </div>
-              </div>
-              <div class="card-list py-4">
-                <div class="item-list">
-                  <div class="avatar">
-                    <img
-                      src="assets/img/jm_denis.jpg"
-                      alt="..."
-                      class="avatar-img rounded-circle"
-                    />
-                  </div>
-                  <div class="info-user ms-3">
-                    <div class="username">Jimmy Denis</div>
-                    <div class="status">Graphic Designer</div>
-                  </div>
-                  <button class="btn btn-icon btn-link op-8 me-1">
-                    <i class="far fa-envelope"></i>
-                  </button>
-                  <button class="btn btn-icon btn-link btn-danger op-8">
-                    <i class="fas fa-ban"></i>
-                  </button>
-                </div>
-                <div class="item-list">
-                  <div class="avatar">
-                    <span
-                      class="avatar-title rounded-circle border border-white"
-                      >CF</span
-                    >
-                  </div>
-                  <div class="info-user ms-3">
-                    <div class="username">Chandra Felix</div>
-                    <div class="status">Sales Promotion</div>
-                  </div>
-                  <button class="btn btn-icon btn-link op-8 me-1">
-                    <i class="far fa-envelope"></i>
-                  </button>
-                  <button class="btn btn-icon btn-link btn-danger op-8">
-                    <i class="fas fa-ban"></i>
-                  </button>
-                </div>
-                <div class="item-list">
-                  <div class="avatar">
-                    <img
-                      src="assets/img/talha.jpg"
-                      alt="..."
-                      class="avatar-img rounded-circle"
-                    />
-                  </div>
-                  <div class="info-user ms-3">
-                    <div class="username">Talha</div>
-                    <div class="status">Front End Designer</div>
-                  </div>
-                  <button class="btn btn-icon btn-link op-8 me-1">
-                    <i class="far fa-envelope"></i>
-                  </button>
-                  <button class="btn btn-icon btn-link btn-danger op-8">
-                    <i class="fas fa-ban"></i>
-                  </button>
-                </div>
-                <div class="item-list">
-                  <div class="avatar">
-                    <img
-                      src="assets/img/chadengle.jpg"
-                      alt="..."
-                      class="avatar-img rounded-circle"
-                    />
-                  </div>
-                  <div class="info-user ms-3">
-                    <div class="username">Chad</div>
-                    <div class="status">CEO Zeleaf</div>
-                  </div>
-                  <button class="btn btn-icon btn-link op-8 me-1">
-                    <i class="far fa-envelope"></i>
-                  </button>
-                  <button class="btn btn-icon btn-link btn-danger op-8">
-                    <i class="fas fa-ban"></i>
-                  </button>
-                </div>
-                <div class="item-list">
-                  <div class="avatar">
-                    <span
-                      class="avatar-title rounded-circle border border-white bg-primary"
-                      >H</span
-                    >
-                  </div>
-                  <div class="info-user ms-3">
-                    <div class="username">Hizrian</div>
-                    <div class="status">Web Designer</div>
-                  </div>
-                  <button class="btn btn-icon btn-link op-8 me-1">
-                    <i class="far fa-envelope"></i>
-                  </button>
-                  <button class="btn btn-icon btn-link btn-danger op-8">
-                    <i class="fas fa-ban"></i>
-                  </button>
-                </div>
-                <div class="item-list">
-                  <div class="avatar">
-                    <span
-                      class="avatar-title rounded-circle border border-white bg-secondary"
-                      >F</span
-                    >
-                  </div>
-                  <div class="info-user ms-3">
-                    <div class="username">Farrah</div>
-                    <div class="status">Marketing</div>
-                  </div>
-                  <button class="btn btn-icon btn-link op-8 me-1">
-                    <i class="far fa-envelope"></i>
-                  </button>
-                  <button class="btn btn-icon btn-link btn-danger op-8">
-                    <i class="fas fa-ban"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-8">
-          <div class="card card-round">
-            <div class="card-header">
-              <div class="card-head-row card-tools-still-right">
-                <div class="card-title">Transaction History</div>
-                <div class="card-tools">
-                  <div class="dropdown">
-                    <button
-                      class="btn btn-icon btn-clean me-0"
-                      type="button"
-                      id="dropdownMenuButton"
-                      data-bs-toggle="dropdown"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                    >
-                      <i class="fas fa-ellipsis-h"></i>
-                    </button>
-                    <div
-                      class="dropdown-menu"
-                      aria-labelledby="dropdownMenuButton"
-                    >
-                      <a class="dropdown-item" href="#">Action</a>
-                      <a class="dropdown-item" href="#">Another action</a>
-                      <a class="dropdown-item" href="#"
-                        >Something else here</a
-                      >
+                    <div class="form-group">
+                        <label for="help_email">Votre Email</label>
+                        <input type="email" class="form-control" id="help_email" placeholder="Entrez votre email">
                     </div>
-                  </div>
-                </div>
-              </div>
+                    <div class="form-group">
+                        <label for="help_subject">Sujet</label>
+                        <input type="text" class="form-control" id="help_subject" placeholder="Sujet de votre demande">
+                    </div>
+                    <div class="form-group">
+                        <label for="help_message">Message</label>
+                        <textarea class="form-control" id="help_message" rows="5" placeholder="Décrivez votre problème ou question"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Envoyer la Demande</button>
+                </form>
             </div>
-            <div class="card-body p-0">
-              <div class="table-responsive">
-                <!-- Projects table -->
-                <table class="table align-items-center mb-0">
-                  <thead class="thead-light">
-                    <tr>
-                      <th scope="col">Payment Number</th>
-                      <th scope="col" class="text-end">Date & Time</th>
-                      <th scope="col" class="text-end">Amount</th>
-                      <th scope="col" class="text-end">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th scope="row">
-                        <button
-                          class="btn btn-icon btn-round btn-success btn-sm me-2"
-                        >
-                          <i class="fa fa-check"></i>
-                        </button>
-                        Payment from #10231
-                      </th>
-                      <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                      <td class="text-end">$250.00</td>
-                      <td class="text-end">
-                        <span class="badge badge-success">Completed</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">
-                        <button
-                          class="btn btn-icon btn-round btn-success btn-sm me-2"
-                        >
-                          <i class="fa fa-check"></i>
-                        </button>
-                        Payment from #10231
-                      </th>
-                      <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                      <td class="text-end">$250.00</td>
-                      <td class="text-end">
-                        <span class="badge badge-success">Completed</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">
-                        <button
-                          class="btn btn-icon btn-round btn-success btn-sm me-2"
-                        >
-                          <i class="fa fa-check"></i>
-                        </button>
-                        Payment from #10231
-                      </th>
-                      <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                      <td class="text-end">$250.00</td>
-                      <td class="text-end">
-                        <span class="badge badge-success">Completed</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">
-                        <button
-                          class="btn btn-icon btn-round btn-success btn-sm me-2"
-                        >
-                          <i class="fa fa-check"></i>
-                        </button>
-                        Payment from #10231
-                      </th>
-                      <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                      <td class="text-end">$250.00</td>
-                      <td class="text-end">
-                        <span class="badge badge-success">Completed</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">
-                        <button
-                          class="btn btn-icon btn-round btn-success btn-sm me-2"
-                        >
-                          <i class="fa fa-check"></i>
-                        </button>
-                        Payment from #10231
-                      </th>
-                      <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                      <td class="text-end">$250.00</td>
-                      <td class="text-end">
-                        <span class="badge badge-success">Completed</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">
-                        <button
-                          class="btn btn-icon btn-round btn-success btn-sm me-2"
-                        >
-                          <i class="fa fa-check"></i>
-                        </button>
-                        Payment from #10231
-                      </th>
-                      <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                      <td class="text-end">$250.00</td>
-                      <td class="text-end">
-                        <span class="badge badge-success">Completed</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">
-                        <button
-                          class="btn btn-icon btn-round btn-success btn-sm me-2"
-                        >
-                          <i class="fa fa-check"></i>
-                        </button>
-                        Payment from #10231
-                      </th>
-                      <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                      <td class="text-end">$250.00</td>
-                      <td class="text-end">
-                        <span class="badge badge-success">Completed</span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
-
-  <!-- Inclusion de Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('statisticsChart').getContext('2d');
-
-        const data = {
-            labels: @json($statistiques->pluck('mois')),
-            datasets: [
-                {
-                    label: "Ventes mensuelles (FCFA)",
-                    data: @json($statistiques->pluck('total_ventes')),
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    fill: true,
-                    tension: 0.3
-                }
-            ]
-        };
-
-        const options = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return value.toLocaleString() + ' FCFA';
-                        }
-                    }
-                }
-            }
-        };
-
-        new Chart(ctx, {
-            type: 'line',
-            data: data,
-            options: options
-        });
-    });
-
-
-</script>
-
-
+</div>
 @endsection
+
+@push('scripts')
+{{-- Add any specific JS for the help page if needed --}}
+@endpush

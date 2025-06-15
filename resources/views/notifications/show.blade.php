@@ -1,17 +1,30 @@
-@extends('layouts.app')
+@extends('layouts.app') {{-- Changed from layouts/app to layouts.app --}}
 
-@section('contenus')
-<div class="container">
+@section('title', 'Détail Notification') {{-- Added title section --}}
+
+@section('content') {{-- Changed from contenus to content --}}
+<div class="page-header">
+    <h3 class="fw-bold mb-3">Détail de la Notification</h3>
+    <ul class="breadcrumbs">
+        <li class="nav-home"><a href="{{ route('dashboard') }}"><i class="icon-home"></i></a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item"><a href="{{ route('notifications.index') }}">Notifications</a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item">Détail</li>
+    </ul>
+</div>
+
+<div class="container"> {{-- Kept container from original show --}}
     <h1>Détails de la Notification</h1>
 
     @if ($notification)
         <div class="card">
             <div class="card-header">
-                Détails de la Notification
+                Notification ID: {{ $notification->id }}
             </div>
             <div class="card-body">
-                <p><strong>Message:</strong> {{ $notification->data['message'] }}</p>
-                <p><strong>Reçue le:</strong> {{ $notification->created_at->format('d/m/Y H:i:s') }} ({{ $notification->created_at->diffForHumans() }})</p>
+                <p><strong>Message:</strong> {{ $notification->data['message'] ?? 'N/A' }}</p>
+                <p><strong>Reçue le:</strong> {{ $notification->created_at->format('d/m/Y H:i:s') }}</p>
                 <p><strong>Statut:</strong> 
                     @if($notification->read_at)
                         Lue le {{ $notification->read_at->format('d/m/Y H:i:s') }}

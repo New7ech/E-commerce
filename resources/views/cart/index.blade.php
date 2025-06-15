@@ -1,102 +1,123 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Shopping Cart') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 bg-white border-b border-gray-200">
-                    @if (session('success'))
-                        <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-md">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-                    @if (session('error'))
-                        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
-                            {{ session('error') }}
-                        </div>
-                    @endif
+@section('title', 'Panier d\'Achat')
 
-                    @if (count($articlesInCart) > 0)
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
+@section('content')
+<div class="page-header">
+    <h3 class="fw-bold mb-3">Panier d'Achat</h3>
+    <ul class="breadcrumbs">
+        <li class="nav-home"><a href="{{ route('home') }}"><i class="icon-home"></i></a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item"><a href="{{ route('products.index') }}">Produits</a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item">Panier</li>
+    </ul>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        @include('layouts.flash') {{-- For success/error messages --}}
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Votre Panier</h4>
+            </div>
+            <div class="card-body">
+                @if (count($articlesInCart) > 0)
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="cart-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Produit</th>
+                                    <th scope="col" class="text-center">Prix</th>
+                                    <th scope="col" class="text-center" style="width: 150px;">Quantité</th>
+                                    <th scope="col" class="text-end">Sous-total</th>
+                                    <th scope="col" class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($articlesInCart as $item)
                                     <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
-                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach ($articlesInCart as $item)
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="flex items-center">
-                                                    {{-- <div class="flex-shrink-0 h-10 w-10"> --}}
-                                                        {{-- <img class="h-10 w-10 rounded-full" src="{{ $item['image_url'] ?? 'https://via.placeholder.com/150' }}" alt="{{ $item['name'] }}"> --}}
-                                                    {{-- </div> --}}
-                                                    <div class="ml-4">
-                                                        <div class="text-sm font-medium text-gray-900">{{ $item['name'] }}</div>
-                                                    </div>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {{-- Placeholder for image - consider adding if available
+                                                <img src="{{ $item['image_url'] ?? asset('assets/img/placeholder-product.jpg') }}" alt="{{ $item['name'] }}" style="width: 60px; height: 60px; object-fit: cover;" class="me-3 rounded">
+                                                --}}
+                                                <div>
+                                                    <h6 class="fw-semibold mb-0"><a href="{{ route('products.show', $item['id']) }}">{{ $item['name'] }}</a></h6>
+                                                    {{-- <small class="text-muted">SKU: {{ $item['id'] }}</small> --}}
                                                 </div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm text-gray-900">${{ number_format($item['prix'], 2) }}</div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <form action="{{ route('cart.update', $item['id']) }}" method="POST" class="inline-flex items-center">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <input type="number" name="quantity" value="{{ $item['quantity'] }}" min="1" class="w-16 text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                                    <button type="submit" class="ml-2 inline-flex items-center px-2 py-1 border border-transparent shadow-sm text-xs font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                                        Update
-                                                    </button>
-                                                </form>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm text-gray-900">${{ number_format($item['subtotal'], 2) }}</div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <form action="{{ route('cart.remove', $item['id']) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900">Remove</button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle">{{ number_format($item['prix'], 0, ',', ' ') }} FCFA</td>
+                                        <td class="text-center align-middle">
+                                            <form action="{{ route('cart.update', $item['id']) }}" method="POST" class="d-inline-flex align-items-center">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="number" name="quantity" value="{{ $item['quantity'] }}" min="1" class="form-control form-control-sm text-center" style="width: 70px;">
+                                                <button type="submit" class="btn btn-primary btn-sm ms-2" data-bs-toggle="tooltip" title="Mettre à jour">
+                                                    <i class="fa fa-sync"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                        <td class="text-end align-middle fw-semibold">{{ number_format($item['subtotal'], 0, ',', ' ') }} FCFA</td>
+                                        <td class="text-center align-middle">
+                                            <form action="{{ route('cart.remove', $item['id']) }}" method="POST">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Supprimer">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
 
-                        <div class="mt-6 flex justify-between items-center">
-                            <div>
-                                <form action="{{ route('cart.clear') }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-sm text-gray-600 hover:text-gray-900 underline">Clear Cart</button>
-                                </form>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xl font-semibold text-gray-900">Total: ${{ number_format($totalPrice, 2) }}</p>
-                                <a href="{{ route('checkout.index') }}" class="mt-2 inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                    Proceed to Checkout
-                                </a>
-                            </div>
+                    <div class="row mt-4">
+                        <div class="col-md-8">
+                            <form action="{{ route('cart.clear') }}" method="POST" class="mb-3">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Voulez-vous vraiment vider votre panier ?');">
+                                    <i class="fa fa-times-circle me-1"></i> Vider le Panier
+                                </button>
+                            </form>
+                            <a href="{{ route('products.index') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fa fa-arrow-left me-1"></i> Continuer les Achats
+                            </a>
                         </div>
-                    @else
-                        <p class="text-center text-gray-600">Your cart is empty.</p>
-                        <div class="mt-4 text-center">
-                            <a href="{{ route('products.index') }}" class="text-indigo-600 hover:text-indigo-900 font-semibold">Continue Shopping</a>
+                        <div class="col-md-4 text-end">
+                            <h4 class="fw-bold">Total du Panier</h4>
+                            {{-- Assuming no complex tax/shipping calculation in cart view itself --}}
+                            <p class="fs-4 fw-bold mb-2">{{ number_format($totalPrice, 0, ',', ' ') }} FCFA</p>
+                            <a href="{{ route('checkout.index') }}" class="btn btn-success btn-lg btn-round w-100">
+                                <i class="fa fa-credit-card me-2"></i> Passer à la Caisse
+                            </a>
                         </div>
-                    @endif
-                </div>
+                    </div>
+                @else
+                    <div class="text-center py-5">
+                        <i class="fa fa-shopping-cart fa-3x text-muted mb-3"></i>
+                        <p class="fs-5 text-muted">Votre panier est vide.</p>
+                        <a href="{{ route('products.index') }}" class="btn btn-primary btn-round mt-3">
+                           <i class="fa fa-store me-1"></i> Commencer vos Achats
+                        </a>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
-</x-app-layout>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    // Initialize tooltips for dynamically added buttons if any, or static ones
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+@endpush

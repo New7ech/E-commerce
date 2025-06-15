@@ -1,146 +1,170 @@
-<x-app-layout> {{-- Assuming you have an admin layout --}}
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Order Details') }} #{{ $order->id }}
-        </h2>
-    </x-slot>
+@extends('layouts.app') {{-- Changed from x-app-layout --}}
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-             @if (session('success'))
-                <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-md">
-                    {{ session('success') }}
+@section('title', 'Détails de la Commande #' . $order->id)
+
+@section('content')
+<div class="page-header">
+    <h3 class="fw-bold mb-3">Détails de la Commande</h3>
+    <ul class="breadcrumbs">
+        <li class="nav-home"><a href="{{ route('dashboard') }}"><i class="icon-home"></i></a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item"><a href="{{ route('admin.orders.index') }}">Commandes</a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item">Commande #{{ $order->id }}</li>
+    </ul>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        @if (session('success'))
+            <div class="alert alert-success mb-3" role="alert">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if ($errors->any())
+            <div class="alert alert-danger mb-3" role="alert">
+                <ul class="list-unstyled mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+    </div>
+
+    <!-- Order Details and Items -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <h4 class="card-title">Commande #{{ $order->id }} -
+                        <span class="badge
+                            @if($order->status == 'delivered' || $order->status == 'shipped') bg-info
+                            @elseif($order->status == 'processing') bg-primary
+                            @elseif($order->status == 'pending_payment') bg-warning text-dark
+                            @elseif($order->status == 'cancelled' || $order->status == 'refunded') bg-danger
+                            @else bg-secondary @endif">
+                            {{ ucfirst(str_replace('_', ' ', $order->status)) }}
+                        </span>
+                    </h4>
                 </div>
-            @endif
-            @if ($errors->any())
-                <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
-                    <ul class="list-disc pl-5">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Passée le : {{ $order->created_at->format('d/m/Y H:i') }}</p>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Order Details and Items -->
-                <div class="md:col-span-2">
-                    <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
-                        <div class="px-4 py-5 sm:px-6">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">
-                                Order #{{ $order->id }} - {{ ucfirst(str_replace('_', ' ', $order->status)) }}
-                            </h3>
-                            <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                                Placed on: {{ $order->created_at->format('M d, Y H:i A') }}
-                            </p>
-                        </div>
-                        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
-                            <dl class="sm:divide-y sm:divide-gray-200">
-                                <div class="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Customer</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                        {{ $order->user->name ?? 'Guest User' }} <br>
-                                        {{ $order->user->email ?? '' }}
-                                    </dd>
-                                </div>
-                                <div class="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Total Amount</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${{ number_format($order->total_amount, 2) }}</dd>
-                                </div>
-                                <div class="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Payment Method</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ $order->payment_method }}</dd>
-                                </div>
-                                <div class="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Payment Status</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                            @if($order->payment_status == 'paid') bg-green-100 text-green-800 @elseif($order->payment_status == 'pending') bg-yellow-100 text-yellow-800 @else bg-red-100 text-red-800 @endif">
-                                            {{ ucfirst(str_replace('_', ' ', $order->payment_status)) }}
-                                        </span>
-                                    </dd>
-                                </div>
-                                <div class="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Shipping Address</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                        {{ $order->shipping_name }}<br>
-                                        {{ $order->shipping_address }}<br>
-                                        {{ $order->shipping_city }}, {{ $order->shipping_postal_code }}<br>
-                                        {{ $order->shipping_country }}
-                                    </dd>
-                                </div>
-                                @if($order->billing_name)
-                                <div class="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt class="text-sm font-medium text-gray-500">Billing Address</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                        {{ $order->billing_name }}<br>
-                                        {{ $order->billing_address }}<br>
-                                        {{ $order->billing_city }}, {{ $order->billing_postal_code }}<br>
-                                        {{ $order->billing_country }}
-                                    </dd>
-                                </div>
-                                @endif
-                            </dl>
-                        </div>
+                <dl class="row mt-4">
+                    <dt class="col-sm-4 fw-semibold">Client</dt>
+                    <dd class="col-sm-8">
+                        {{ $order->user->name ?? $order->shipping_name ?? 'N/A' }} <br>
+                        {{ $order->user->email ?? '' }}
+                    </dd>
 
-                        <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
-                             <h4 class="text-md font-semibold text-gray-700 mb-3">Order Items</h4>
-                             <ul role="list" class="divide-y divide-gray-200">
-                                @foreach($order->items as $item)
-                                <li class="py-4 flex">
-                                    {{-- Placeholder for image: <img src="{{ $item->article->image_url ?? 'https://via.placeholder.com/100' }}" alt="{{ $item->article->name }}" class="h-16 w-16 rounded-md object-cover"> --}}
-                                    <div class="ml-0 flex-1 flex flex-col"> {{-- Changed ml-4 to ml-0 if no image --}}
-                                        <div>
-                                            <div class="flex justify-between text-base font-medium text-gray-900">
-                                                <h3>
-                                                    <a href="{{ route('products.show', $item->article->id) }}" target="_blank">{{ $item->article->name }}</a>
-                                                </h3>
-                                                <p class="ml-4">${{ number_format($item->price * $item->quantity, 2) }}</p>
-                                            </div>
-                                            <p class="mt-1 text-sm text-gray-500">SKU: {{ $item->article->id }}</p> {{-- Assuming SKU is article ID for now --}}
-                                        </div>
-                                        <div class="flex-1 flex items-end justify-between text-sm">
-                                            <p class="text-gray-500">Qty: {{ $item->quantity }}</p>
-                                            <p class="text-gray-500">Unit Price: ${{ number_format($item->price, 2) }}</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+                    <dt class="col-sm-4 fw-semibold">Montant Total</dt>
+                    <dd class="col-sm-8">{{ number_format($order->total_amount, 0, ',', ' ') }} FCFA</dd>
 
-                <!-- Actions and Status Update -->
-                <div class="md:col-span-1">
-                    <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                        <h3 class="text-lg font-semibold mb-4">Update Order Status</h3>
-                        <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            <div>
-                                <label for="status" class="block text-sm font-medium text-gray-700">Order Status</label>
-                                <select id="status" name="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                    <option value="pending_payment" {{ $order->status === 'pending_payment' ? 'selected' : '' }}>Pending Payment</option>
-                                    <option value="processing" {{ $order->status === 'processing' ? 'selected' : '' }}>Processing</option>
-                                    <option value="shipped" {{ $order->status === 'shipped' ? 'selected' : '' }}>Shipped</option>
-                                    <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>Delivered</option>
-                                    <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                                    <option value="refunded" {{ $order->status === 'refunded' ? 'selected' : '' }}>Refunded</option>
-                                </select>
-                            </div>
-                            <div class="mt-4">
-                                <button type="submit" class="w-full justify-center inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                    Update Status
-                                </button>
-                            </div>
-                        </form>
-                         <div class="mt-6 pt-6 border-t border-gray-200">
-                            <a href="{{ route('admin.orders.index') }}" class="text-indigo-600 hover:text-indigo-900">&larr; Back to Orders List</a>
-                        </div>
-                    </div>
+                    <dt class="col-sm-4 fw-semibold">Mode de Paiement</dt>
+                    <dd class="col-sm-8">{{ $order->payment_method ?? 'N/A' }}</dd>
+
+                    <dt class="col-sm-4 fw-semibold">Statut Paiement</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge
+                            @if($order->payment_status == 'paid') bg-success
+                            @elseif($order->payment_status == 'pending') bg-warning text-dark
+                            @else bg-danger @endif">
+                            {{ ucfirst(str_replace('_', ' ', $order->payment_status)) }}
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-4 fw-semibold">Adresse de Livraison</dt>
+                    <dd class="col-sm-8">
+                        {{ $order->shipping_name }}<br>
+                        {{ $order->shipping_address }}<br>
+                        {{ $order->shipping_city }}, {{ $order->shipping_postal_code }}<br>
+                        {{ $order->shipping_country }}
+                    </dd>
+
+                    @if($order->billing_name)
+                    <dt class="col-sm-4 fw-semibold">Adresse de Facturation</dt>
+                    <dd class="col-sm-8">
+                        {{ $order->billing_name }}<br>
+                        {{ $order->billing_address }}<br>
+                        {{ $order->billing_city }}, {{ $order->billing_postal_code }}<br>
+                        {{ $order->billing_country }}
+                    </dd>
+                    @endif
+                </dl>
+
+                <hr class="my-4">
+                <h5 class="fw-bold mb-3">Articles Commandés</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Article</th>
+                                <th class="text-end">Quantité</th>
+                                <th class="text-end">Prix Unitaire</th>
+                                <th class="text-end">Total Article</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($order->items as $item)
+                            <tr>
+                                <td>
+                                    <a href="{{ route('products.show', $item->article->id) }}" target="_blank">{{ $item->article->name }}</a>
+                                    <br><small class="text-muted">SKU: {{ $item->article->id }}</small>
+                                </td>
+                                <td class="text-end">{{ $item->quantity }}</td>
+                                <td class="text-end">{{ number_format($item->price, 0, ',', ' ') }} FCFA</td>
+                                <td class="text-end">{{ number_format($item->price * $item->quantity, 0, ',', ' ') }} FCFA</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-</x-app-layout>
+
+    <!-- Actions and Status Update -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Mettre à Jour le Statut</h4>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
+                    @csrf
+                    @method('PATCH')
+                    <div class="form-group">
+                        <label for="status" class="form-label">Statut de la Commande</label>
+                        <select id="status" name="status" class="form-select">
+                            <option value="pending_payment" {{ $order->status === 'pending_payment' ? 'selected' : '' }}>Paiement en attente</option>
+                            <option value="processing" {{ $order->status === 'processing' ? 'selected' : '' }}>En traitement</option>
+                            <option value="shipped" {{ $order->status === 'shipped' ? 'selected' : '' }}>Expédiée</option>
+                            <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>Livrée</option>
+                            <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>Annulée</option>
+                            <option value="refunded" {{ $order->status === 'refunded' ? 'selected' : '' }}>Remboursée</option>
+                        </select>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Mettre à Jour
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer mt-3 border-top">
+                 <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary w-100">
+                    <i class="fa fa-arrow-left me-1"></i> Retour à la Liste des Commandes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    // Add any page-specific JavaScript here if needed
+</script>
+@endpush

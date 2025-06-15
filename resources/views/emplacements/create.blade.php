@@ -1,41 +1,54 @@
-@extends('layouts/app')
-@section('contenus')
-<div class="container mt-5">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h1 class="h4 mb-0">Ajouter un emplacement</h1>
-        </div>
-        <div class="card-body">
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+@extends('layouts.app')
 
-            <form action="{{ route('emplacements.store') }}" method="POST">
-                @csrf
+@section('title', 'Ajouter un Emplacement')
 
-                <div class="mb-3">
-                    <label for="name" class="form-label">Nom de l'emplacement</label>
-                    <input type="text" name="name" id="name" class="form-control" value="{{ old('name') }}" required>
-                </div>
-                <div class="mb-3">
-                    <label for="description" class="form-label">Description</label>
-                    <textarea name="description" id="description" class="form-control" rows="3">{{ old('description') }}</textarea>
-                </div>
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Créer
-                    </button>
-                    <a href="{{ route('emplacements.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-list"></i> Retour à la liste
-                    </a>
-                </div>
-            </form>
+@section('content')
+<div class="page-header">
+    <h3 class="fw-bold mb-3">Ajouter un Emplacement</h3>
+    <ul class="breadcrumbs">
+        <li class="nav-home"><a href="{{ route('welcome') }}"><i class="icon-home"></i></a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item"><a href="{{ route('emplacements.index') }}">Emplacements</a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item">Ajouter</li>
+    </ul>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Ajouter un Nouvel Emplacement</h4>
+            </div>
+            <div class="card-body">
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form action="{{ route('emplacements.store') }}" method="POST">
+                    @csrf
+                    <div class="form-group">
+                        <label for="name">Nom de l'emplacement</label>
+                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                        @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>
+                        @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="card-action">
+                        <button type="submit" class="btn btn-success">Enregistrer</button>
+                        <a href="{{ route('emplacements.index') }}" class="btn btn-danger">Annuler</a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

@@ -48,8 +48,7 @@ class EmplacementController extends Controller
      */
     public function show(Emplacement $emplacement)
     {
-        // Optional: return view('emplacements.show', compact('emplacement'));
-        return redirect()->route('emplacements.edit', $emplacement); // Or redirect to edit
+        return view('emplacements.show', compact('emplacement'));
     }
 
     /**

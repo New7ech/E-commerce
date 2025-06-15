@@ -1,40 +1,43 @@
 @extends('layouts.app')
 
-@section('contenus')
-<div class="container mt-5">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h1 class="h4 mb-0">Détails de l'emplacement : {{ $emplacement->name }}</h1>
-        </div>
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-3">Nom de l'emplacement :</dt>
-                <dd class="col-sm-9">{{ $emplacement->name }}</dd>
+@section('title', 'Détails de l\'Emplacement')
 
-                <dt class="col-sm-3">Description :</dt>
-                <dd class="col-sm-9">{{ $emplacement->description ?: 'N/A' }}</dd>
+@section('content')
+<div class="page-header">
+    <h3 class="fw-bold mb-3">Détails de l'Emplacement</h3>
+    <ul class="breadcrumbs">
+        <li class="nav-home"><a href="{{ route('welcome') }}"><i class="icon-home"></i></a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item"><a href="{{ route('emplacements.index') }}">Emplacements</a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item">{{ $emplacement->name }}</li>
+    </ul>
+</div>
 
-                <dt class="col-sm-3">Créé le :</dt>
-                <dd class="col-sm-9">{{ $emplacement->created_at->format('d/m/Y H:i') }}</dd>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Emplacement : {{ $emplacement->name }}</h4>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Nom</dt>
+                    <dd class="col-sm-9">{{ $emplacement->name }}</dd>
 
-                <dt class="col-sm-3">Modifié le :</dt>
-                <dd class="col-sm-9">{{ $emplacement->updated_at->format('d/m/Y H:i') }}</dd>
-            </dl>
-            <hr>
-            <div class="mt-4">
-                <a href="{{ route('emplacements.edit', $emplacement->id) }}" class="btn btn-warning">
-                    <i class="fas fa-edit"></i> Modifier
-                </a>
-                <form action="{{ route('emplacements.destroy', $emplacement->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet emplacement ? Ceci pourrait affecter les articles associés.');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Supprimer
-                    </button>
-                </form>
-                <a href="{{ route('emplacements.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-list"></i> Retour à la liste
-                </a>
+                    <dt class="col-sm-3">Description</dt>
+                    <dd class="col-sm-9">{{ $emplacement->description ?: 'N/A' }}</dd>
+
+                    <dt class="col-sm-3">Date de création</dt>
+                    <dd class="col-sm-9">{{ $emplacement->created_at ? $emplacement->created_at->format('d/m/Y H:i:s') : 'N/A' }}</dd>
+
+                    <dt class="col-sm-3">Dernière modification</dt>
+                    <dd class="col-sm-9">{{ $emplacement->updated_at ? $emplacement->updated_at->format('d/m/Y H:i:s') : 'N/A' }}</dd>
+                </dl>
+            </div>
+            <div class="card-footer">
+                <a href="{{ route('emplacements.index') }}" class="btn btn-primary">Retour à la liste</a>
+                <a href="{{ route('emplacements.edit', $emplacement->id) }}" class="btn btn-warning">Modifier</a>
             </div>
         </div>
     </div>
