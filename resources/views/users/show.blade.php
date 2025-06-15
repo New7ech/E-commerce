@@ -1,78 +1,81 @@
 @extends('layouts.app')
 
-@section('contenus')
-<div class="container mt-5">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h1 class="h4 mb-0">Détails de l'utilisateur : {{ $user->name }}</h1>
-        </div>
-        <div class="card-body">
-            <div class="row mb-4">
-                <div class="col-md-3 text-center">
-                    @if($user->photo)
-                        <img src="{{ asset('storage/' . $user->photo) }}" alt="Photo de profil" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
-                    @else
-                        <img src="{{ asset('images/default-avatar.png') }}" alt="Avatar par défaut" width="100">
-                    @endif
-                </div>
-                <div class="col-md-9">
-                    <dl class="row">
-                        <dt class="col-sm-4">Nom complet :</dt>
-                        <dd class="col-sm-8">{{ $user->name }}</dd>
+@section('title', 'Détails de l\'Utilisateur')
 
-                        <dt class="col-sm-4">Email :</dt>
-                        <dd class="col-sm-8">{{ $user->email }}</dd>
+@section('content')
+<div class="page-header">
+    <h3 class="fw-bold mb-3">Détails de l'Utilisateur</h3>
+    <ul class="breadcrumbs">
+        <li class="nav-home"><a href="{{ route('welcome') }}"><i class="icon-home"></i></a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item"><a href="{{ route('users.index') }}">Utilisateurs</a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item">{{ $user->name }}</li>
+    </ul>
+</div>
 
-                        <dt class="col-sm-4">Téléphone :</dt>
-                        <dd class="col-sm-8">{{ $user->phone ?: 'N/A' }}</dd>
-
-                        <dt class="col-sm-4">Date de naissance :</dt>
-                        <dd class="col-sm-8">{{ $user->birthdate ? \Carbon\Carbon::parse($user->birthdate)->format('d/m/Y') : 'N/A' }}</dd>
-
-                        <dt class="col-sm-4">Adresse :</dt>
-                        <dd class="col-sm-8">{{ $user->address ?: 'N/A' }}</dd>
-
-
-                        <dt class="col-sm-4">Rôles :</dt>
-                        <dd class="col-sm-8">
-                            @forelse($user->roles as $role)
-                                <span class="badge bg-info">{{ $role->name }}</span>
-                            @empty
-                                Aucun rôle assigné
-                            @endforelse
-                        </dd>
-
-                        <dt class="col-sm-4">Statut du compte :</dt>
-                        <dd class="col-sm-8">
-                            <span class="badge {{ $user->status ? 'bg-success' : 'bg-danger' }}">
-                                {{ $user->status ? 'Actif' : 'Inactif' }}
-                            </span>
-                        </dd>
-
-                        <dt class="col-sm-4">Créé le :</dt>
-                        <dd class="col-sm-8">{{ $user->created_at->format('d/m/Y H:i') }}</dd>
-
-                        <dt class="col-sm-4">Modifié le :</dt>
-                        <dd class="col-sm-8">{{ $user->updated_at->format('d/m/Y H:i') }}</dd>
-                    </dl>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <h4 class="card-title">Utilisateur : {{ $user->name }}</h4>
+                    <div class="ms-auto">
+                         <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-round btn-sm">
+                            <i class="fa fa-edit"></i> Modifier
+                        </a>
+                        <a href="{{ route('users.index') }}" class="btn btn-primary btn-round btn-sm">
+                            <i class="fa fa-arrow-left"></i> Retour à la liste
+                        </a>
+                    </div>
                 </div>
             </div>
-            <hr>
-            <div class="mt-4">
-                <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning">
-                    <i class="fas fa-edit"></i> Modifier
-                </a>
-                <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Supprimer
-                    </button>
-                </form>
-                <a href="{{ route('users.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-list"></i> Retour à la liste
-                </a>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        @if($user->photo)
+                            <img src="{{ asset('storage/' . $user->photo) }}" alt="Photo de profil de {{ $user->name }}" class="img-fluid img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                        @else
+                            <img src="{{ asset('assets/img/default-avatar.png') }}" alt="Avatar par défaut" class="img-fluid img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                             {{-- Assuming default-avatar.png is in public/assets/img/ --}}
+                        @endif
+                    </div>
+                    <div class="col-md-9">
+                        <dl class="row">
+                            <dt class="col-sm-3">Nom complet</dt>
+                            <dd class="col-sm-9">{{ $user->name }}</dd>
+
+                            <dt class="col-sm-3">Email</dt>
+                            <dd class="col-sm-9">{{ $user->email }}</dd>
+
+                            <dt class="col-sm-3">Téléphone</dt>
+                            <dd class="col-sm-9">{{ $user->phone ?: 'N/A' }}</dd>
+
+                            <dt class="col-sm-3">Adresse</dt>
+                            <dd class="col-sm-9">{{ $user->address ?: 'N/A' }}</dd>
+
+                            <dt class="col-sm-3">Rôles</dt>
+                            <dd class="col-sm-9">
+                                @forelse($user->roles as $role)
+                                    <span class="badge bg-secondary me-1">{{ $role->name }}</span>
+                                @empty
+                                    Aucun rôle assigné
+                                @endforelse
+                            </dd>
+
+                            <dt class="col-sm-3">Date de création</dt>
+                            <dd class="col-sm-9">{{ $user->created_at ? $user->created_at->format('d/m/Y H:i:s') : 'N/A' }}</dd>
+
+                            <dt class="col-sm-3">Dernière modification</dt>
+                            <dd class="col-sm-9">{{ $user->updated_at ? $user->updated_at->format('d/m/Y H:i:s') : 'N/A' }}</dd>
+                        </dl>
+                    </div>
+                </div>
             </div>
+             {{-- Card Footer can be used for additional actions if needed later --}}
+            {{-- <div class="card-footer text-center">
+                <button type="button" class="btn btn-primary btn-round">Autres actions...</button>
+            </div> --}}
         </div>
     </div>
 </div>

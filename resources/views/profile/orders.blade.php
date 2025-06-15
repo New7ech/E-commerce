@@ -1,76 +1,100 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('My Order History') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-             {{-- Navigation for Profile Section --}}
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="flex flex-wrap gap-4">
-                    <a href="{{ route('profile.edit') }}" class="text-indigo-600 hover:text-indigo-900 font-semibold {{ request()->routeIs('profile.edit') ? 'underline' : '' }}">
-                        {{ __('Edit Profile') }}
+@section('title', 'Historique des Commandes')
+
+@section('content')
+<div class="page-header">
+    <h3 class="fw-bold mb-3">Historique des Commandes</h3>
+    <ul class="breadcrumbs">
+        <li class="nav-home"><a href="{{ route('dashboard') }}"><i class="icon-home"></i></a></li> {{-- Assuming dashboard or similar for home route --}}
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item"><a href="{{ route('profile.edit') }}">Profil</a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item">Historique des Commandes</li>
+    </ul>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        {{-- Navigation for Profile Section --}}
+        <div class="card">
+            <div class="card-body">
+                <nav class="nav nav-pills nav-fill">
+                    <a class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}" href="{{ route('profile.edit') }}">
+                        Modifier le Profil
                     </a>
-                    <a href="{{ route('profile.orders') }}" class="text-indigo-600 hover:text-indigo-900 font-semibold {{ request()->routeIs('profile.orders') ? 'underline' : '' }}">
-                        {{ __('Order History') }}
+                    <a class="nav-link {{ request()->routeIs('profile.orders') ? 'active' : '' }}" href="{{ route('profile.orders') }}">
+                        Historique des Commandes
                     </a>
                     {{-- Add other profile related links here if needed --}}
-                </div>
+                </nav>
             </div>
+        </div>
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 bg-white border-b border-gray-200">
-                    @if ($orders->count() > 0)
-                        <div class="space-y-6">
-                            @foreach ($orders as $order)
-                                <div class="border rounded-lg p-4">
-                                    <div class="flex justify-between items-center">
-                                        <div>
-                                            <h3 class="text-lg font-semibold">Order #{{ $order->id }}</h3>
-                                            <p class="text-sm text-gray-600">Placed on: {{ $order->created_at->format('F d, Y H:i') }}</p>
-                                        </div>
-                                        <div class="text-right">
-                                            <p class="text-lg font-semibold">${{ number_format($order->total_amount, 2) }}</p>
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                @if($order->status == 'delivered' || $order->status == 'shipped') bg-blue-100 text-blue-800
-                                                @elseif($order->status == 'processing') bg-indigo-100 text-indigo-800
-                                                @elseif($order->status == 'pending_payment') bg-yellow-100 text-yellow-800
-                                                @elseif($order->status == 'cancelled' || $order->status == 'refunded') bg-red-100 text-red-800
-                                                @else bg-gray-100 text-gray-800 @endif">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Mes Commandes</h4>
+            </div>
+            <div class="card-body">
+                @if ($orders->count() > 0)
+                    <div class="list-group">
+                        @foreach ($orders as $order)
+                            <div class="list-group-item list-group-item-action mb-3 border rounded">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1 fw-bold">Commande #{{ $order->id }}</h5>
+                                    <small class="text-muted">{{ $order->created_at->format('d/m/Y H:i') }}</small>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-8">
+                                        <p class="mb-1"><strong>Statut:</strong>
+                                            <span class="badge
+                                                @if($order->status == 'delivered' || $order->status == 'shipped') bg-success
+                                                @elseif($order->status == 'processing') bg-info
+                                                @elseif($order->status == 'pending_payment') bg-warning text-dark
+                                                @elseif($order->status == 'cancelled' || $order->status == 'refunded') bg-danger
+                                                @else bg-secondary @endif">
                                                 {{ ucfirst(str_replace('_', ' ', $order->status)) }}
                                             </span>
-                                        </div>
+                                        </p>
+                                        <p class="mb-1"><strong>Total:</strong> {{ number_format($order->total_amount, 2, ',', ' ') }} FCFA</p> {{-- Assuming FCFA or similar currency --}}
+                                        <p class="mb-1"><strong>Statut Paiement:</strong> <span class="fw-semibold">{{ ucfirst(str_replace('_', ' ', $order->payment_status)) }}</span></p>
                                     </div>
-                                    <div class="mt-4">
-                                        <h4 class="text-md font-medium text-gray-700">Items:</h4>
-                                        <ul class="list-disc list-inside ml-4 mt-2 text-sm text-gray-600">
-                                            @foreach ($order->items as $item)
-                                                <li>{{ $item->article->name }} (Qty: {{ $item->quantity }}) - ${{ number_format($item->price, 2) }} each</li>
-                                            @endforeach
-                                        </ul>
+                                    <div class="col-md-4 text-md-end align-self-center">
+                                        {{-- <a href="#" class="btn btn-primary btn-sm">Voir Détails</a> --}}
+                                        {{-- Placeholder for a dedicated order detail view if it exists --}}
                                     </div>
-                                     <div class="mt-4 text-sm">
-                                        <p><strong>Shipping Address:</strong> {{ $order->shipping_name }}, {{ $order->shipping_address }}, {{ $order->shipping_city }}, {{ $order->shipping_postal_code }}, {{ $order->shipping_country }}</p>
-                                        <p><strong>Payment Status:</strong> <span class="font-semibold">{{ ucfirst(str_replace('_', ' ', $order->payment_status)) }}</span></p>
-                                    </div>
-                                    {{-- Optionally add a link to a more detailed order view if needed --}}
-                                    {{-- <div class="mt-4">
-                                        <a href="#" class="text-indigo-600 hover:text-indigo-900">View Order Details</a>
-                                    </div> --}}
                                 </div>
-                            @endforeach
-                        </div>
+                                @if($order->items->count() > 0)
+                                <div class="mt-3">
+                                    <h6 class="fw-semibold">Articles:</h6>
+                                    <ul class="list-unstyled small">
+                                        @foreach ($order->items as $item)
+                                            <li>{{ $item->article->name ?? 'Article non disponible' }} (Qté: {{ $item->quantity }}) - {{ number_format($item->price, 2, ',', ' ') }} FCFA l'unité</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                                @endif
+                                <div class="mt-2 text-sm">
+                                    <p class="mb-0"><strong>Adresse de livraison:</strong> {{ $order->shipping_name }}, {{ $order->shipping_address }}, {{ $order->shipping_city }}, {{ $order->shipping_postal_code }}, {{ $order->shipping_country }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
 
-                        <div class="mt-6">
-                            {{ $orders->links() }}
-                        </div>
-                    @else
-                        <p>You have not placed any orders yet.</p>
-                    @endif
-                </div>
+                    <div class="mt-4 d-flex justify-content-center">
+                        {{ $orders->links() }} {{-- For pagination --}}
+                    </div>
+                @else
+                    <p class="text-center">Vous n'avez passé aucune commande pour le moment.</p>
+                @endif
             </div>
         </div>
     </div>
-</x-app-layout>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    // Add any page-specific JavaScript here if needed
+</script>
+@endpush

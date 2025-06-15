@@ -1,22 +1,36 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Checkout') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <form action="{{ route('checkout.process') }}" method="POST" id="checkout-form">
-                @csrf
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Shipping and Billing Information -->
-                    <div class="md:col-span-2">
-                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                            <h3 class="text-lg font-semibold mb-4">Shipping Information</h3>
+@section('title', 'Passer à la Caisse')
+
+@section('content')
+<div class="page-header">
+    <h3 class="fw-bold mb-3">Passer à la Caisse</h3>
+    <ul class="breadcrumbs">
+        <li class="nav-home"><a href="{{ route('home') }}"><i class="icon-home"></i></a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item"><a href="{{ route('products.index') }}">Produits</a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item"><a href="{{ route('cart.index') }}">Panier</a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item">Caisse</li>
+    </ul>
+</div>
+
+<div class="row">
+    <form action="{{ route('checkout.process') }}" method="POST" id="checkout-form" class="needs-validation" novalidate>
+        @csrf
+        <div class="col-md-12"> {{-- Main column for layout --}}
+            <div class="row">
+                {{-- Shipping and Billing Information --}}
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Informations de Livraison et Facturation</h4>
+                        </div>
+                        <div class="card-body">
                             @if ($errors->any())
-                                <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
-                                    <ul class="list-disc pl-5">
+                                <div class="alert alert-danger mb-3">
+                                    <ul class="mb-0">
                                         @foreach ($errors->all() as $error)
                                             <li>{{ $error }}</li>
                                         @endforeach
@@ -24,145 +38,200 @@
                                 </div>
                             @endif
 
-                            <div class="grid grid-cols-1 gap-y-6">
-                                <div>
-                                    <label for="shipping_name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                                    <input type="text" name="shipping_name" id="shipping_name" value="{{ old('shipping_name', auth()->user()->name ?? '') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <h5 class="fw-semibold mb-3">Adresse de Livraison</h5>
+                            <div class="row g-3">
+                                <div class="col-md-12 form-group">
+                                    <label for="shipping_name" class="form-label">Nom complet <span class="text-danger">*</span></label>
+                                    <input type="text" name="shipping_name" id="shipping_name" value="{{ old('shipping_name', auth()->user()->name ?? '') }}" required class="form-control @error('shipping_name') is-invalid @enderror">
+                                    @error('shipping_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
-                                <div>
-                                    <label for="shipping_address" class="block text-sm font-medium text-gray-700">Address</label>
-                                    <input type="text" name="shipping_address" id="shipping_address" value="{{ old('shipping_address') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <div class="col-md-12 form-group">
+                                    <label for="shipping_address" class="form-label">Adresse <span class="text-danger">*</span></label>
+                                    <input type="text" name="shipping_address" id="shipping_address" value="{{ old('shipping_address') }}" required class="form-control @error('shipping_address') is-invalid @enderror">
+                                     @error('shipping_address') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
-                                <div>
-                                    <label for="shipping_city" class="block text-sm font-medium text-gray-700">City</label>
-                                    <input type="text" name="shipping_city" id="shipping_city" value="{{ old('shipping_city') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <div class="col-md-6 form-group">
+                                    <label for="shipping_city" class="form-label">Ville <span class="text-danger">*</span></label>
+                                    <input type="text" name="shipping_city" id="shipping_city" value="{{ old('shipping_city') }}" required class="form-control @error('shipping_city') is-invalid @enderror">
+                                     @error('shipping_city') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="shipping_postal_code" class="block text-sm font-medium text-gray-700">Postal Code</label>
-                                        <input type="text" name="shipping_postal_code" id="shipping_postal_code" value="{{ old('shipping_postal_code') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                    </div>
-                                    <div>
-                                        <label for="shipping_country" class="block text-sm font-medium text-gray-700">Country</label>
-                                        <input type="text" name="shipping_country" id="shipping_country" value="{{ old('shipping_country') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                    </div>
+                                <div class="col-md-3 form-group">
+                                    <label for="shipping_postal_code" class="form-label">Code Postal <span class="text-danger">*</span></label>
+                                    <input type="text" name="shipping_postal_code" id="shipping_postal_code" value="{{ old('shipping_postal_code') }}" required class="form-control @error('shipping_postal_code') is-invalid @enderror">
+                                     @error('shipping_postal_code') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
-                            </div>
-
-                            <hr class="my-6">
-
-                            <h3 class="text-lg font-semibold mb-4">Billing Information</h3>
-                            <div>
-                                <input type="checkbox" name="billing_same_as_shipping" id="billing_same_as_shipping" value="1" {{ old('billing_same_as_shipping', true) ? 'checked' : '' }} class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <label for="billing_same_as_shipping" class="ml-2 text-sm text-gray-900">Same as shipping address</label>
-                            </div>
-
-                            <div id="billing_address_form" class="{{ old('billing_same_as_shipping', true) ? 'hidden' : '' }} mt-4 grid grid-cols-1 gap-y-6">
-                                <div>
-                                    <label for="billing_name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                                    <input type="text" name="billing_name" id="billing_name" value="{{ old('billing_name', auth()->user()->name ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <div class="col-md-3 form-group">
+                                    <label for="shipping_country" class="form-label">Pays <span class="text-danger">*</span></label>
+                                    <input type="text" name="shipping_country" id="shipping_country" value="{{ old('shipping_country') }}" required class="form-control @error('shipping_country') is-invalid @enderror">
+                                     @error('shipping_country') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
-                                <div>
-                                    <label for="billing_address" class="block text-sm font-medium text-gray-700">Address</label>
-                                    <input type="text" name="billing_address" id="billing_address" value="{{ old('billing_address') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                 <div class="col-md-6 form-group">
+                                    <label for="shipping_phone" class="form-label">Téléphone <span class="text-danger">*</span></label>
+                                    <input type="text" name="shipping_phone" id="shipping_phone" value="{{ old('shipping_phone', auth()->user()->phone ?? '') }}" required class="form-control @error('shipping_phone') is-invalid @enderror">
+                                    @error('shipping_phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
-                                <div>
-                                    <label for="billing_city" class="block text-sm font-medium text-gray-700">City</label>
-                                    <input type="text" name="billing_city" id="billing_city" value="{{ old('billing_city') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="billing_postal_code" class="block text-sm font-medium text-gray-700">Postal Code</label>
-                                        <input type="text" name="billing_postal_code" id="billing_postal_code" value="{{ old('billing_postal_code') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                    </div>
-                                    <div>
-                                        <label for="billing_country" class="block text-sm font-medium text-gray-700">Country</label>
-                                        <input type="text" name="billing_country" id="billing_country" value="{{ old('billing_country') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                    </div>
+                                <div class="col-md-6 form-group">
+                                    <label for="shipping_email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" name="shipping_email" id="shipping_email" value="{{ old('shipping_email', auth()->user()->email ?? '') }}" required class="form-control @error('shipping_email') is-invalid @enderror">
+                                    @error('shipping_email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
 
-                            <hr class="my-6">
-                             <h3 class="text-lg font-semibold mb-4">Payment Method</h3>
-                             <div>
-                                 <label for="payment_method" class="block text-sm font-medium text-gray-700">Payment Method</label>
-                                 <select name="payment_method" id="payment_method" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                     <option value="mock_payment">Mock Payment Gateway</option>
+                            <hr class="my-4">
+                            <h5 class="fw-semibold mb-3">Adresse de Facturation</h5>
+                            <div class="form-check mb-3">
+                                <input type="checkbox" name="billing_same_as_shipping" id="billing_same_as_shipping" value="1" {{ old('billing_same_as_shipping', true) ? 'checked' : '' }} class="form-check-input">
+                                <label for="billing_same_as_shipping" class="form-check-label">Identique à l'adresse de livraison</label>
+                            </div>
+
+                            <div id="billing_address_form" class="{{ old('billing_same_as_shipping', true) ? 'd-none' : '' }}">
+                                <div class="row g-3">
+                                    <div class="col-md-12 form-group">
+                                        <label for="billing_name" class="form-label">Nom complet <span class="text-danger">*</span></label>
+                                        <input type="text" name="billing_name" id="billing_name" value="{{ old('billing_name', auth()->user()->name ?? '') }}" class="form-control @error('billing_name') is-invalid @enderror">
+                                         @error('billing_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <label for="billing_address" class="form-label">Adresse <span class="text-danger">*</span></label>
+                                        <input type="text" name="billing_address" id="billing_address" value="{{ old('billing_address') }}" class="form-control @error('billing_address') is-invalid @enderror">
+                                         @error('billing_address') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="billing_city" class="form-label">Ville <span class="text-danger">*</span></label>
+                                        <input type="text" name="billing_city" id="billing_city" value="{{ old('billing_city') }}" class="form-control @error('billing_city') is-invalid @enderror">
+                                         @error('billing_city') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    </div>
+                                    <div class="col-md-3 form-group">
+                                        <label for="billing_postal_code" class="form-label">Code Postal <span class="text-danger">*</span></label>
+                                        <input type="text" name="billing_postal_code" id="billing_postal_code" value="{{ old('billing_postal_code') }}" class="form-control @error('billing_postal_code') is-invalid @enderror">
+                                         @error('billing_postal_code') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    </div>
+                                    <div class="col-md-3 form-group">
+                                        <label for="billing_country" class="form-label">Pays <span class="text-danger">*</span></label>
+                                        <input type="text" name="billing_country" id="billing_country" value="{{ old('billing_country') }}" class="form-control @error('billing_country') is-invalid @enderror">
+                                         @error('billing_country') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            <hr class="my-4">
+                             <h5 class="fw-semibold mb-3">Mode de Paiement</h5>
+                             <div class="form-group">
+                                 <label for="payment_method" class="form-label">Mode de paiement <span class="text-danger">*</span></label>
+                                 <select name="payment_method" id="payment_method" required class="form-select @error('payment_method') is-invalid @enderror">
+                                     <option value="mock_payment" {{ old('payment_method') == 'mock_payment' ? 'selected' : '' }}>Simulation de Paiement</option>
                                      {{-- Add other payment methods here if needed --}}
+                                     {{-- <option value="stripe" {{ old('payment_method') == 'stripe' ? 'selected' : '' }}>Carte de Crédit (Stripe)</option> --}}
                                  </select>
+                                 @error('payment_method') <div class="invalid-feedback">{{ $message }}</div> @enderror
                              </div>
-                             <div class="mt-6 p-4 border rounded-lg bg-gray-50">
-                                <h4 class="text-md font-semibold text-gray-700">Payment Gateway Placeholder</h4>
-                                <p class="text-sm text-gray-600 mt-2">
-                                    This is where the actual payment gateway integration (e.g., Stripe Elements, PayPal button) would appear.
-                                    For now, selecting "Mock Payment Gateway" will simulate a successful payment.
+                             <div class="mt-3 p-3 border rounded bg-light">
+                                <h6 class="fw-medium">Passerelle de Paiement (Simulation)</h6>
+                                <p class="text-muted small">
+                                    Ceci est une simulation de l'intégration d'une passerelle de paiement. Aucune transaction réelle ne sera effectuée.
                                 </p>
                             </div>
-
-
                         </div>
                     </div>
+                </div>
 
-                    <!-- Order Summary -->
-                    <div class="md:col-span-1">
-                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                            <h3 class="text-lg font-semibold mb-4">Order Summary</h3>
+                {{-- Order Summary --}}
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Récapitulatif de la Commande</h4>
+                        </div>
+                        <div class="card-body">
                             @if (count($articlesInCart) > 0)
-                                <ul class="divide-y divide-gray-200">
+                                <ul class="list-group list-group-flush">
                                     @foreach ($articlesInCart as $item)
-                                        <li class="py-4 flex justify-between items-center">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                                             <div>
-                                                <p class="text-sm font-medium text-gray-900">{{ $item['name'] }}</p>
-                                                <p class="text-xs text-gray-500">Qty: {{ $item['quantity'] }} x ${{ number_format($item['prix'], 2) }}</p>
+                                                <h6 class="mb-0">{{ $item['name'] }}</h6>
+                                                <small class="text-muted">Qté: {{ $item['quantity'] }} x {{ number_format($item['prix'], 0, ',', ' ') }} FCFA</small>
                                             </div>
-                                            <p class="text-sm font-medium text-gray-900">${{ number_format($item['subtotal'], 2) }}</p>
+                                            <span class="fw-semibold">{{ number_format($item['subtotal'], 0, ',', ' ') }} FCFA</span>
                                         </li>
                                     @endforeach
                                 </ul>
-                                <hr class="my-4">
-                                <div class="flex justify-between items-center font-semibold text-lg">
-                                    <p>Total</p>
-                                    <p>${{ number_format($totalPrice, 2) }}</p>
+                                <hr class="my-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0 fw-semibold">Total</h5>
+                                    <h5 class="mb-0 fw-bold text-primary">{{ number_format($totalPrice, 0, ',', ' ') }} FCFA</h5>
                                 </div>
-                                <div class="mt-6">
-                                    <button type="submit" class="w-full justify-center inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                        Place Order
+                                <div class="mt-4">
+                                    <button type="submit" class="btn btn-success btn-lg btn-round w-100">
+                                        <i class="fa fa-lock me-2"></i> Confirmer et Payer
                                     </button>
                                 </div>
                             @else
-                                <p>Your cart is empty.</p>
-                                <a href="{{ route('products.index') }}" class="text-indigo-600 hover:text-indigo-900 font-semibold mt-2 inline-block">Continue Shopping</a>
+                                <p class="text-center">Votre panier est vide.</p>
+                                <a href="{{ route('products.index') }}" class="btn btn-primary btn-round w-100 mt-2">Continuer les Achats</a>
                             @endif
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
+    </form>
+</div>
+@endsection
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const checkbox = document.getElementById('billing_same_as_shipping');
-            const billingForm = document.getElementById('billing_address_form');
-            const billingInputs = billingForm.querySelectorAll('input');
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.getElementById('billing_same_as_shipping');
+    const billingForm = document.getElementById('billing_address_form');
+    const billingInputs = billingForm.querySelectorAll('input, select, textarea'); // Include all relevant form elements
 
-            function toggleBillingForm() {
-                if (checkbox.checked) {
-                    billingForm.classList.add('hidden');
-                    billingInputs.forEach(input => input.required = false);
+    function toggleBillingForm() {
+        const isSameAsShipping = checkbox.checked;
+        if (isSameAsShipping) {
+            billingForm.classList.add('d-none'); // Bootstrap 5 hide class
+            billingInputs.forEach(input => {
+                // Keep original required status if form is hidden
+                if (input.dataset.originalRequired === 'true') {
+                    input.required = true;
                 } else {
-                    billingForm.classList.remove('hidden');
-                    billingInputs.forEach(input => {
-                        if(input.name !== '_token') { // Don't make token required
-                           input.required = true;
-                        }
-                    });
+                    input.required = false;
                 }
-            }
+            });
+        } else {
+            billingForm.classList.remove('d-none');
+            billingInputs.forEach(input => {
+                // Store original required status if not already stored
+                if (typeof input.dataset.originalRequired === 'undefined') {
+                    input.dataset.originalRequired = input.required;
+                }
+                // Set required based on its original status when shown
+                 if (input.dataset.originalRequired === 'true') {
+                    input.required = true;
+                }
+            });
+        }
+    }
 
-            checkbox.addEventListener('change', toggleBillingForm);
-            // Initialize form state on page load
-            toggleBillingForm();
+    // Store initial required status for all billing inputs
+    billingInputs.forEach(input => {
+        input.dataset.originalRequired = input.required;
+    });
+
+
+    checkbox.addEventListener('change', toggleBillingForm);
+    // Initialize form state on page load
+    toggleBillingForm();
+
+    // Bootstrap 5 form validation
+    var forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
         });
-    </script>
-</x-app-layout>
+});
+</script>
+@endpush

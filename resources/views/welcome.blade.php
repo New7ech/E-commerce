@@ -1,8 +1,8 @@
 @extends('layouts.app')
-@section('contenus')
 
-<div class="container">
-  <div class="page-inner">
+@section('title', 'Tableau de Bord')
+
+@section('content')
     <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
       <div>
         <h3 class="fw-bold mb-3">Accueil</h3>
@@ -26,7 +26,7 @@
               <div class="col col-stats ms-3 ms-sm-0">
                 <div class="numbers">
                   <p class="card-category">Total Factures</p>
-                  <h4 class="card-title">{{ number_format($nombreFactures, 0, ',', ' ') }}</h4>
+                  <h4 class="card-title">{{ number_format($nombreFactures ?? 0, 0, ',', ' ') }}</h4>
                 </div>
               </div>
             </div>
@@ -45,7 +45,7 @@
               <div class="col col-stats ms-3 ms-sm-0">
                 <div class="numbers">
                   <p class="card-category">Montant Total</p>
-                  <h4 class="card-title">{{ number_format($montantTotal, 0, ',', ' ') }} FCFA</h4>
+                  <h4 class="card-title">{{ number_format($montantTotal ?? 0, 0, ',', ' ') }} FCFA</h4>
                 </div>
               </div>
             </div>
@@ -64,7 +64,7 @@
               <div class="col col-stats ms-3 ms-sm-0">
                 <div class="numbers">
                   <p class="card-category">Factures Payées</p>
-                  <h4 class="card-title">{{ number_format($nombreFacturesPayees, 0, ',', ' ') }}</h4>
+                  <h4 class="card-title">{{ number_format($nombreFacturesPayees ?? 0, 0, ',', ' ') }}</h4>
                 </div>
               </div>
             </div>
@@ -83,7 +83,7 @@
               <div class="col col-stats ms-3 ms-sm-0">
                 <div class="numbers">
                   <p class="card-category">Factures Impayées</p>
-                  <h4 class="card-title">{{ number_format($nombreFacturesImpayees, 0, ',', ' ') }}</h4>
+                  <h4 class="card-title">{{ number_format($nombreFacturesImpayees ?? 0, 0, ',', ' ') }}</h4>
                 </div>
               </div>
             </div>
@@ -139,20 +139,20 @@
                 </div>
               </div>
             </div>
-          </div>
-          <div class="card-body pb-0">
-            <div class="mb-4 mt-2">
-              <h1>{{ number_format($montantImpayes, 0, ',', ' ') }} FCFA</h1>
-            </div>
-            <div class="pull-in">
-              <canvas id="dailySalesChart"></canvas>
+            <div class="card-body pb-0">
+              <div class="mb-4 mt-2">
+                <h1>{{ number_format($montantImpayes ?? 0, 0, ',', ' ') }} FCFA</h1>
+              </div>
+              <div class="pull-in">
+                <canvas id="dailySalesChart"></canvas>
+              </div>
             </div>
           </div>
         </div>
         <div class="card card-round">
           <div class="card-body pb-0">
             <div class="h1 fw-bold float-end text-primary">+5%</div>
-            <h2 class="mb-2">{{ number_format($nombreFacturesMoisCourant, 0, ',', ' ') }}</h2>
+            <h2 class="mb-2">{{ number_format($nombreFacturesMoisCourant ?? 0, 0, ',', ' ') }}</h2>
             <p class="text-muted">Factures ce mois-ci</p>
             <div class="pull-in sparkline-fix">
               <div id="lineChart"></div>
@@ -181,12 +181,12 @@
               </div>
             </div>
             <div class="card-list py-4">
-              @foreach($facturesImpayees as $facture)
+              @foreach($facturesImpayees ?? [] as $facture)
               <div class="item-list">
                 <div class="info-user ms-3">
-                  <div class="username">Facture de {{ $facture->client_nom }} {{ $facture->client_prenom }}</div>
-                  <div class="status">Date: {{ $facture->date_facture }}</div>
-                  <div class="status">Montant: {{ number_format($facture->montant_ttc, 0, ',', ' ') }} FCFA</div>
+                  <div class="username">Facture de {{ $facture->client_nom ?? 'N/A' }} {{ $facture->client_prenom ?? '' }}</div>
+                  <div class="status">Date: {{ $facture->date_facture ?? 'N/A' }}</div>
+                  <div class="status">Montant: {{ number_format($facture->montant_ttc ?? 0, 0, ',', ' ') }} FCFA</div>
                 </div>
                 <button class="btn btn-icon btn-link op-8 me-1">
                   <i class="far fa-envelope"></i>
@@ -232,20 +232,20 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @foreach($facturesRecentes as $facture)
+                  @foreach($facturesRecentes ?? [] as $facture)
                   <tr>
                     <th scope="row">
-                      <button class="btn btn-icon btn-round btn-{{ $facture->statut_paiement == 'payé' ? 'success' : 'danger' }} btn-sm me-2">
-                        <i class="fa fa-{{ $facture->statut_paiement == 'payé' ? 'check' : 'times' }}"></i>
+                      <button class="btn btn-icon btn-round btn-{{ ($facture->statut_paiement ?? 'impayé') == 'payé' ? 'success' : 'danger' }} btn-sm me-2">
+                        <i class="fa fa-{{ ($facture->statut_paiement ?? 'impayé') == 'payé' ? 'check' : 'times' }}"></i>
                       </button>
-                      Facture #{{ $facture->id }}
+                      Facture #{{ $facture->id ?? 'N/A' }}
                     </th>
-                    <td class="text-end">{{ $facture->date_facture }}</td>
-                    <td class="text-end">{{ number_format($facture->montant_ttc, 0, ',', ' ') }} FCFA</td>
+                    <td class="text-end">{{ $facture->date_facture ?? 'N/A' }}</td>
+                    <td class="text-end">{{ number_format($facture->montant_ttc ?? 0, 0, ',', ' ') }} FCFA</td>
                     <td class="text-end">
-                      <span class="badge badge-{{ $facture->statut_paiement == 'payé' ? 'success' : 'danger' }}">{{ $facture->statut_paiement }}</span>
+                      <span class="badge badge-{{ ($facture->statut_paiement ?? 'impayé') == 'payé' ? 'success' : 'danger' }}">{{ $facture->statut_paiement ?? 'impayé' }}</span>
                     </td>
-                    <td class="text-end">{{ $facture->mode_paiement }}</td>
+                    <td class="text-end">{{ $facture->mode_paiement ?? 'N/A' }}</td>
                   </tr>
                   @endforeach
                 </tbody>
@@ -255,84 +255,73 @@
         </div>
       </div>
     </div>
-  </div>
-</div>
+@endsection
 
-<!--   Core JS Files   -->
-<script src="assets/js/core/jquery-3.7.1.min.js"></script>
-
-<!-- Chart JS -->
-<script src="assets/js/plugin/chart.js/chart.min.js"></script>
-
-<!-- Chart Circle -->
-<script src="assets/js/plugin/chart-circle/circles.min.js"></script>
-
-<!-- Bootstrap Notify -->
-<script src="assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
-
-<!-- jQuery Vector Maps -->
-<script src="assets/js/plugin/jsvectormap/jsvectormap.min.js"></script>
-<script src="assets/js/plugin/jsvectormap/world.js"></script>
-
-<!-- Kaiadmin JS -->
-<script src="assets/js/kaiadmin.min.js"></script>
-
-<!-- Kaiadmin DEMO methods, don't include it in your project! -->
-{{-- <script src="assets/js/demo.js"></script> --}}
+@push('scripts')
 <script>
-  // Exemple de script pour initialiser les graphiques
   $(document).ready(function() {
-    var ctx = document.getElementById('statisticsChart').getContext('2d');
-    var statisticsChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Carte', 'Chèque', 'Espèces'],
-        datasets: [{
-          label: 'Montant par Mode de Paiement',
-          data: [{{ $montantCarte }}, {{ $montantCheque }}, {{ $montantEspeces }}],
-          backgroundColor: [
-            'rgba(255, 99, 132, 0.2)',
-            'rgba(54, 162, 235, 0.2)',
-            'rgba(255, 206, 86, 0.2)'
-          ],
-          borderColor: [
-            'rgba(255, 99, 132, 1)',
-            'rgba(54, 162, 235, 1)',
-            'rgba(255, 206, 86, 1)'
-          ],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
+    // Fallback for chart data if not available - ensuring script doesn't break
+    var montantCarte = {{ $montantCarte ?? 0 }};
+    var montantCheque = {{ $montantCheque ?? 0 }};
+    var montantEspeces = {{ $montantEspeces ?? 0 }};
+    var labels = {!! isset($labels) ? json_encode($labels) : '[]' !!};
+    var data = {!! isset($data) ? json_encode($data) : '[]' !!};
 
-    var ctxDailySales = document.getElementById('dailySalesChart').getContext('2d');
-    var dailySalesChart = new Chart(ctxDailySales, {
-      type: 'line',
-      data: {
-        labels: {!! json_encode($labels) !!},
-        datasets: [{
-          label: 'Évolution des Impayés',
-          data: {!! json_encode($data) !!},
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true
-          }
+    if (document.getElementById('statisticsChart')) {
+        var ctx = document.getElementById('statisticsChart').getContext('2d');
+        var statisticsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Carte', 'Chèque', 'Espèces'],
+            datasets: [{
+            label: 'Montant par Mode de Paiement',
+            data: [montantCarte, montantCheque, montantEspeces],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)'
+            ],
+            borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+            y: {
+                beginAtZero: true
+            }
+            }
         }
-      }
-    });
+        });
+    }
+
+    if (document.getElementById('dailySalesChart')) {
+        var ctxDailySales = document.getElementById('dailySalesChart').getContext('2d');
+        var dailySalesChart = new Chart(ctxDailySales, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+            label: 'Évolution des Impayés',
+            data: data,
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+            y: {
+                beginAtZero: true
+            }
+            }
+        }
+        });
+    }
   });
 </script>
-@endsection
+@endpush

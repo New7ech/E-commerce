@@ -1,17 +1,29 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
+@section('title', 'Tableau de Bord')
+
+@section('content')
+<div class="page-header">
+    <h3 class="fw-bold mb-3">Tableau de Bord</h3>
+    <ul class="breadcrumbs">
+        <li class="nav-home"><a href="{{ route('dashboard') }}"><i class="icon-home"></i></a></li>
+        <li class="separator"><i class="icon-arrow-right"></i></li>
+        <li class="nav-item">Tableau de Bord</li>
+    </ul>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <p>{{ __("You're logged in!") }}</p>
+                <p>Bienvenue sur votre tableau de bord.</p>
+                {{-- You can add more dashboard-specific content here if needed,
+                     or direct users to the main welcome/statistics page if that serves as the primary dashboard.
+                --}}
+                <p>Pour les statistiques détaillées et la gestion, veuillez consulter la <a href="{{ route('welcome') }}">page d'accueil principale</a> ou les sections dédiées.</p>
             </div>
         </div>
     </div>
-</x-app-layout>
+</div>
+@endsection
