@@ -66,14 +66,14 @@ class CheckoutProcessTest extends TestCase
         $response->assertSee($this->article2->name);
     }
 
-    /** @test */
-    public function guest_users_are_redirected_from_checkout_to_login()
-    {
-        Auth::logout(); // Log out the default user
-        $this->addItemsToCart();
-        $response = $this->get(route('checkout.index'));
-        $response->assertRedirect(route('login'));
-    }
+    // This test is no longer valid as guests can access checkout.
+    // public function guest_users_are_redirected_from_checkout_to_login()
+    // {
+    //     Auth::logout(); // Log out the default user
+    //     $this->addItemsToCart();
+    //     $response = $this->get(route('checkout.index'));
+    //     $response->assertRedirect(route('login'));
+    // }
 
     /** @test */
     public function accessing_checkout_with_an_empty_cart_redirects_to_products_page()
@@ -205,5 +205,90 @@ class CheckoutProcessTest extends TestCase
         $response = $this->post(route('checkout.process'), $this->getValidCheckoutData());
         $response->assertRedirect(route('products.index'));
         $response->assertSessionHas('info', 'Your cart is empty.');
+    }
+
+    // --- Guest Checkout Tests ---
+
+    /** @test */
+    public function guest_can_access_checkout_page_with_items_in_cart()
+    {
+        Auth::logout(); // Ensure guest session
+        $this->addItemsToCart();
+        $response = $this->get(route('checkout.index'));
+
+        $response->assertStatus(200);
+        $response->assertViewIs('checkout.index');
+        $response->assertSee('Passer à la Caisse'); // Checkout page title
+        $response->assertSee($this->article1->name); // Check if cart items are displayed
+    }
+
+    /** @test */
+    public function guest_checkout_form_displays_email_field()
+    {
+        Auth::logout();
+        $this->addItemsToCart();
+        $response = $this->get(route('checkout.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('name="guest_email"', false); // Check for guest_email input field
+    }
+
+    /** @test */
+    public function guest_checkout_validation_fails_for_missing_guest_email()
+    {
+        Auth::logout();
+        $this->addItemsToCart();
+        $checkoutData = $this->getValidCheckoutData();
+        // Remove guest_email if it was part of getValidCheckoutData, or just don't add it
+        // $checkoutData['guest_email'] = ''; // Intentionally missing or empty
+
+        $response = $this->post(route('checkout.process'), $checkoutData);
+
+        $response->assertStatus(302); // Redirect back due to validation error
+        $response->assertSessionHasErrors(['guest_email']);
+    }
+
+    /** @test */
+    public function guest_checkout_successful_order_placement()
+    {
+        Auth::logout();
+        $this->addItemsToCart();
+        $checkoutData = $this->getValidCheckoutData();
+        $checkoutData['guest_email'] = 'guest@example.com';
+
+        $response = $this->post(route('checkout.process'), $checkoutData);
+
+        $response->assertRedirect(route('home'));
+        $response->assertSessionHas('success', function ($value) {
+            return str_contains($value, 'Order placed successfully! Order ID:');
+        });
+        $response->assertSessionMissing('cart');
+
+        $this->assertDatabaseCount('orders', 1);
+        $order = Order::first();
+        $this->assertNull($order->user_id); // Key check for guest order
+        $this->assertEquals($checkoutData['guest_email'], $order->email);
+        $this->assertEquals($checkoutData['shipping_name'], $order->shipping_name);
+        $this->assertEquals('paid', $order->payment_status);
+        $this->assertEquals('processing', $order->status);
+
+        $expectedTotalPrice = ($this->article1->prix * 2) + ($this->article2->prix * 1);
+        $this->assertEquals($expectedTotalPrice, $order->total_amount);
+
+        $this->assertDatabaseCount('order_items', 2);
+         $this->assertDatabaseHas('order_items', [
+            'order_id' => $order->id,
+            'article_id' => $this->article1->id,
+            'quantity' => 2,
+        ]);
+        $this->assertDatabaseHas('order_items', [
+            'order_id' => $order->id,
+            'article_id' => $this->article2->id,
+            'quantity' => 1,
+        ]);
+
+        // Check stock decrement
+        $this->assertEquals(5 - 2, $this->article1->fresh()->quantite);
+        $this->assertEquals(3 - 1, $this->article2->fresh()->quantite);
     }
 }

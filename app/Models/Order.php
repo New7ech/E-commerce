@@ -11,6 +11,7 @@ class Order extends Model
 
     protected $fillable = [
         'user_id',
+        'email', // Added for guest checkout
         'shipping_name',
         'shipping_address',
         'shipping_city',
@@ -28,18 +29,24 @@ class Order extends Model
     ];
 
     /**
-     * Get the items for the order.
+     * Get the items associated with the order.
+     * Each order can have multiple order items.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function items()
+    public function items(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
     /**
-     * Get the user that owns the order.
+     * Get the user that placed the order.
+     * This relationship is optional, as orders can be placed by guest users (user_id will be null).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function user()
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class); // Eloquent handles nullable foreign keys automatically
     }
 }

@@ -76,6 +76,30 @@
                                 <small class="text-danger mt-1 d-block">Ce produit est actuellement en rupture de stock.</small>
                             @endif
                         </form>
+
+                        {{-- Wishlist Button --}}
+                        @auth
+                        <div class="mt-3">
+                            @if ($isInWishlist)
+                                <form action="{{ route('wishlist.remove', $article->id) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="fa fa-heart-broken"></i> Retirer de la liste de souhaits
+                                    </button>
+                                </form>
+                            @else
+                                <form action="{{ route('wishlist.add', $article->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                                        <i class="fa fa-heart"></i> Ajouter à la liste de souhaits
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                        @endauth
+                        {{-- End Wishlist Button --}}
+
                     </div>
                 </div>
 
@@ -86,6 +110,42 @@
                 </div>
             </div>
         </div>
+
+        {{-- Related Products Section --}}
+        @if ($relatedArticles && $relatedArticles->isNotEmpty())
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4 class="card-title">Vous pourriez aussi aimer</h4>
+            </div>
+            <div class="card-body">
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
+                    @foreach ($relatedArticles as $relatedArticle)
+                        <div class="col">
+                            <div class="card card-product h-100">
+                                <a href="{{ route('products.show', $relatedArticle->id) }}">
+                                    @if ($relatedArticle->image_path && Storage::disk('public')->exists($relatedArticle->image_path))
+                                        <img src="{{ Storage::url($relatedArticle->image_path) }}" alt="{{ $relatedArticle->name }}" class="img-fluid rounded-top" style="height: 150px; width:100%; object-fit: cover;">
+                                    @else
+                                        <img src="{{ asset('assets/img/placeholder-product.jpg') }}" alt="Placeholder" class="img-fluid rounded-top" style="height: 150px; width:100%; object-fit: cover;">
+                                    @endif
+                                </a>
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title fw-bold small">
+                                        <a href="{{ route('products.show', $relatedArticle->id) }}" class="text-dark text-decoration-none stretched-link">{{ Str::limit($relatedArticle->name, 50) }}</a>
+                                    </h5>
+                                    <div class="mt-auto">
+                                        <p class="price fw-bold text-primary mb-0">{{ number_format($relatedArticle->prix, 0, ',', ' ') }} FCFA</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        @endif
+        {{-- End Related Products Section --}}
+
     </div>
 </div>
 @endsection

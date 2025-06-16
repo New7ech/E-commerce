@@ -22,11 +22,11 @@
             <div class="card-body">
                 <form method="GET" action="{{ route('products.index') }}">
                     <div class="row g-3 align-items-end">
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label for="search" class="form-label">Rechercher un produit</label>
                             <input type="text" name="search" id="search" value="{{ $search ?? '' }}" class="form-control form-control-sm" placeholder="Nom du produit...">
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-3">
                             <label for="category" class="form-label">Catégorie</label>
                             <select name="category" id="category" class="form-select form-select-sm">
                                 <option value="">Toutes les catégories</option>
@@ -38,10 +38,33 @@
                             </select>
                         </div>
                         <div class="col-md-2">
+                            <label for="price_min" class="form-label">Prix Min</label>
+                            <input type="number" name="price_min" id="price_min" value="{{ $price_min ?? '' }}" class="form-control form-control-sm" placeholder="Min">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="price_max" class="form-label">Prix Max</label>
+                            <input type="number" name="price_max" id="price_max" value="{{ $price_max ?? '' }}" class="form-control form-control-sm" placeholder="Max">
+                        </div>
+                        <div class="col-md-3"> {{-- Adjusted for layout --}}
+                            <label for="sort_by" class="form-label">Trier par</label>
+                            <select name="sort_by" id="sort_by" class="form-select form-select-sm">
+                                <option value="">Par défaut</option>
+                                <option value="price_asc" {{ (isset($sort_by) && $sort_by == 'price_asc') ? 'selected' : '' }}>Prix (Croissant)</option>
+                                <option value="price_desc" {{ (isset($sort_by) && $sort_by == 'price_desc') ? 'selected' : '' }}>Prix (Décroissant)</option>
+                                <option value="name_asc" {{ (isset($sort_by) && $sort_by == 'name_asc') ? 'selected' : '' }}>Nom (A-Z)</option>
+                                <option value="name_desc" {{ (isset($sort_by) && $sort_by == 'name_desc') ? 'selected' : '' }}>Nom (Z-A)</option>
+                                <option value="created_at_desc" {{ (isset($sort_by) && $sort_by == 'created_at_desc') ? 'selected' : '' }}>Plus récents</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 align-self-end"> {{-- Ensure button aligns with inputs --}}
                             <button type="submit" class="btn btn-primary btn-sm w-100">
                                 <i class="fa fa-filter"></i> Filtrer
                             </button>
                         </div>
+                    </div>
+                    <div class="row g-3 mt-1"> {{-- New row for filter button if needed, or adjust above columns --}}
+                        {{-- If the button is too cramped, it could be moved to its own row or a wider column --}}
+                        {{-- For now, adjusted column widths above to make space --}}
                     </div>
                 </form>
             </div>
@@ -79,14 +102,34 @@
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <p class="price fw-bold fs-5 mb-0 text-primary">{{ number_format($article->prix, 0, ',', ' ') }} FCFA</p>
                                             </div>
-                                             <form action="{{ route('cart.add', $article->id) }}" method="POST" class="mt-2">
-                                                @csrf
-                                                <input type="hidden" name="quantity" value="1">
-                                                <button type="submit" class="btn btn-primary btn-sm w-100 @if($article->quantite <= 0) btn-outline-danger disabled @endif" {{ $article->quantite <= 0 ? 'disabled' : '' }}>
-                                                    <i class="fa fa-cart-plus"></i>
-                                                    @if($article->quantite <= 0) En rupture @else Ajouter au panier @endif
-                                                </button>
-                                            </form>
+                                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                                @auth
+                                                    @if (in_array($article->id, $userWishlistArticleIds))
+                                                        <form action="{{ route('wishlist.remove', $article->id) }}" method="POST" class="me-1 flex-grow-1">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-outline-danger btn-xs w-100" title="Retirer de la liste de souhaits">
+                                                                <i class="fa fa-heart-broken"></i>
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <form action="{{ route('wishlist.add', $article->id) }}" method="POST" class="me-1 flex-grow-1">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-outline-primary btn-xs w-100" title="Ajouter à la liste de souhaits">
+                                                                <i class="fa fa-heart"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                @endauth
+                                                <form action="{{ route('cart.add', $article->id) }}" method="POST" class="flex-grow-1 @auth ms-1 @endauth">
+                                                    @csrf
+                                                    <input type="hidden" name="quantity" value="1">
+                                                    <button type="submit" class="btn btn-primary btn-sm w-100 @if($article->quantite <= 0) btn-outline-danger disabled @endif" {{ $article->quantite <= 0 ? 'disabled' : '' }}>
+                                                        <i class="fa fa-cart-plus"></i>
+                                                        @if($article->quantite <= 0) En rupture @else Panier @endif
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

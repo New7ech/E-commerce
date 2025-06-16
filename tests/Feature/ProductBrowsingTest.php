@@ -94,4 +94,152 @@ class ProductBrowsingTest extends TestCase
         $response = $this->get(route('products.show', 999)); // Non-existent ID
         $response->assertStatus(404);
     }
+
+    // --- New Tests for Filtering and Sorting ---
+
+    /** @test */
+    public function product_filtering_by_price_range_works()
+    {
+        Article::factory()->create(['name' => 'Cheap Product', 'prix' => 10.00]);
+        Article::factory()->create(['name' => 'Mid Product', 'prix' => 50.00]);
+        Article::factory()->create(['name' => 'Expensive Product', 'prix' => 100.00]);
+
+        $response = $this->get(route('products.index', ['price_min' => 40, 'price_max' => 60]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Mid Product');
+        $response->assertDontSee('Cheap Product');
+        $response->assertDontSee('Expensive Product');
+        $response->assertViewHas('price_min', '40');
+        $response->assertViewHas('price_max', '60');
+    }
+
+    /** @test */
+    public function product_sorting_by_price_asc_works()
+    {
+        $article1 = Article::factory()->create(['prix' => 100.00]);
+        $article2 = Article::factory()->create(['prix' => 50.00]);
+        $article3 = Article::factory()->create(['prix' => 150.00]);
+
+        $response = $this->get(route('products.index', ['sort_by' => 'price_asc']));
+
+        $response->assertStatus(200);
+        $response->assertSeeInOrder([$article2->name, $article1->name, $article3->name]);
+        $response->assertViewHas('sort_by', 'price_asc');
+    }
+
+    /** @test */
+    public function product_sorting_by_price_desc_works()
+    {
+        $article1 = Article::factory()->create(['prix' => 100.00]);
+        $article2 = Article::factory()->create(['prix' => 50.00]);
+        $article3 = Article::factory()->create(['prix' => 150.00]);
+
+        $response = $this->get(route('products.index', ['sort_by' => 'price_desc']));
+
+        $response->assertStatus(200);
+        $response->assertSeeInOrder([$article3->name, $article1->name, $article2->name]);
+    }
+
+    /** @test */
+    public function product_sorting_by_name_asc_works()
+    {
+        $articleB = Article::factory()->create(['name' => 'Product B']);
+        $articleA = Article::factory()->create(['name' => 'Product A']);
+        $articleC = Article::factory()->create(['name' => 'Product C']);
+
+        $response = $this->get(route('products.index', ['sort_by' => 'name_asc']));
+
+        $response->assertStatus(200);
+        $response->assertSeeInOrder([$articleA->name, $articleB->name, $articleC->name]);
+    }
+
+    /** @test */
+    public function product_sorting_by_name_desc_works()
+    {
+        $articleB = Article::factory()->create(['name' => 'Product B']);
+        $articleA = Article::factory()->create(['name' => 'Product A']);
+        $articleC = Article::factory()->create(['name' => 'Product C']);
+
+        $response = $this->get(route('products.index', ['sort_by' => 'name_desc']));
+
+        $response->assertStatus(200);
+        $response->assertSeeInOrder([$articleC->name, $articleB->name, $articleA->name]);
+    }
+
+    /** @test */
+    public function product_sorting_by_created_at_desc_works()
+    {
+        $oldest = Article::factory()->create(['created_at' => now()->subDays(2)]);
+        $newest = Article::factory()->create(['created_at' => now()]);
+        $middle = Article::factory()->create(['created_at' => now()->subDay()]);
+
+        // Default sort is latest() which is created_at desc
+        $response = $this->get(route('products.index', ['sort_by' => 'created_at_desc']));
+        $response->assertStatus(200);
+        $response->assertSeeInOrder([$newest->name, $middle->name, $oldest->name]);
+
+        $response = $this->get(route('products.index')); // Also test default
+        $response->assertStatus(200);
+        $response->assertSeeInOrder([$newest->name, $middle->name, $oldest->name]);
+    }
+
+    /** @test */
+    public function combined_filtering_and_sorting_works()
+    {
+        $category = Categorie::factory()->create();
+        Article::factory()->create(['name' => 'Alpha Product', 'prix' => 10, 'category_id' => $category->id]);
+        Article::factory()->create(['name' => 'Beta Product', 'prix' => 20, 'category_id' => $category->id]);
+        Article::factory()->create(['name' => 'Gamma Product (Other Cat)', 'prix' => 5]); // Different category
+
+        $response = $this->get(route('products.index', [
+            'category' => $category->id,
+            'price_min' => 5,
+            'price_max' => 25,
+            'sort_by' => 'price_asc'
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Alpha Product');
+        $response->assertSee('Beta Product');
+        $response->assertDontSee('Gamma Product');
+        $response->assertSeeInOrder(['Alpha Product', 'Beta Product']);
+    }
+
+    // --- New Tests for Related Products ---
+
+    /** @test */
+    public function related_products_are_displayed_on_product_show_page()
+    {
+        $category = Categorie::factory()->create();
+        $mainArticle = Article::factory()->create(['category_id' => $category->id]);
+        $relatedArticle1 = Article::factory()->create(['category_id' => $category->id]);
+        $relatedArticle2 = Article::factory()->create(['category_id' => $category->id]);
+        Article::factory()->create(); // Article in different category
+
+        $response = $this->get(route('products.show', $mainArticle->id));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('relatedArticles');
+        $response->assertSee('Vous pourriez aussi aimer');
+        $response->assertSee($relatedArticle1->name);
+        $response->assertSee($relatedArticle2->name);
+        $response->assertDontSee($mainArticle->name, false); // Check it's not in related section
+    }
+
+    /** @test */
+    public function no_related_products_section_if_none_exist()
+    {
+        $category = Categorie::factory()->create();
+        $mainArticle = Article::factory()->create(['category_id' => $category->id]);
+        // No other articles in the same category
+
+        $response = $this->get(route('products.show', $mainArticle->id));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('relatedArticles', function ($relatedArticles) {
+            return $relatedArticles->isEmpty();
+        });
+        $response->assertDontSee('Vous pourriez aussi aimer');
+    }
 }
