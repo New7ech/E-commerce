@@ -21,7 +21,7 @@
                 {{-- You can add more dashboard-specific content here if needed,
                      or direct users to the main welcome/statistics page if that serves as the primary dashboard.
                 --}}
-                <p>Pour les statistiques détaillées et la gestion, veuillez consulter la <a href="{{ route('welcome') }}">page d'accueil principale</a> ou les sections dédiées.</p>
+                <p>Pour les statistiques détaillées et la gestion, veuillez consulter la <a href="#">page d'accueil principale</a> ou les sections dédiées.</p>
             </div>
         </div>
     </div>

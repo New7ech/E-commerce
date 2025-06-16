@@ -38,18 +38,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($articles as $article)
+                            @forelse ($articles as $article)
                             <tr>
                                 <td>{{ $article->nom }}</td>
-                                <td>{{ $article->categorie->nom ?? 'N/A' }}</td> {{-- Assuming 'nom' for categorie name based on your example --}}
+                                <td>{{ $article->categorie->nom ?? 'N/A' }}</td>
                                 <td>{{ number_format($article->prix, 2, ',', ' ') }} FCFA</td>
-                                <td>{{ $article->quantite_stock }}</td> {{-- Changed from quantite to quantite_stock --}}
+                                <td>{{ $article->quantite_stock }}</td>
                                 <td>
                                     <div class="form-button-action">
                                         <a href="{{ route('articles.show', $article->id) }}" data-bs-toggle="tooltip" title="Voir" class="btn btn-link btn-primary btn-lg">
                                             <i class="fa fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('articles.edit', $article->id) }}" data-bs-toggle="tooltip" title="Modifier" class="btn btn-link btn-primary btn-lg"> {{-- Changed btn-primary to btn-warning to match common practice for edit --}}
+                                        <a href="{{ route('articles.edit', $article->id) }}" data-bs-toggle="tooltip" title="Modifier" class="btn btn-link btn-primary btn-lg">
                                             <i class="fa fa-edit"></i>
                                         </a>
                                         <form action="{{ route('articles.destroy', $article->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');">
@@ -66,7 +66,7 @@
                             <tr>
                                 <td colspan="5" class="text-center">Aucun article trouvé.</td>
                             </tr>
-                            @endforeach
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
