@@ -65,16 +65,35 @@
                                     <input type="text" name="shipping_country" id="shipping_country" value="{{ old('shipping_country') }}" required class="form-control @error('shipping_country') is-invalid @enderror">
                                      @error('shipping_country') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
+
+                                @guest
+                                <div class="col-md-6 form-group">
+                                    <label for="guest_email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" name="guest_email" id="guest_email" value="{{ old('guest_email') }}" required class="form-control @error('guest_email') is-invalid @enderror">
+                                    @error('guest_email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                                {{-- Optionally, add a phone field for guests if needed --}}
+                                {{-- <div class="col-md-6 form-group">
+                                    <label for="guest_phone" class="form-label">Téléphone <span class="text-danger">*</span></label>
+                                    <input type="text" name="guest_phone" id="guest_phone" value="{{ old('guest_phone') }}" required class="form-control @error('guest_phone') is-invalid @enderror">
+                                    @error('guest_phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div> --}}
+                                @endguest
+
+                                @auth
                                  <div class="col-md-6 form-group">
-                                    <label for="shipping_phone" class="form-label">Téléphone <span class="text-danger">*</span></label>
-                                    <input type="text" name="shipping_phone" id="shipping_phone" value="{{ old('shipping_phone', auth()->user()->phone ?? '') }}" required class="form-control @error('shipping_phone') is-invalid @enderror">
+                                    <label for="shipping_phone" class="form-label">Téléphone</label> {{-- Not strictly required for logged in if profile has it, but good for order specific --}}
+                                    <input type="text" name="shipping_phone" id="shipping_phone" value="{{ old('shipping_phone', auth()->user()->phone ?? '') }}" class="form-control @error('shipping_phone') is-invalid @enderror">
                                     @error('shipping_phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-6 form-group">
-                                    <label for="shipping_email" class="form-label">Email <span class="text-danger">*</span></label>
-                                    <input type="email" name="shipping_email" id="shipping_email" value="{{ old('shipping_email', auth()->user()->email ?? '') }}" required class="form-control @error('shipping_email') is-invalid @enderror">
+                                    {{-- For authenticated users, their email is known. This field is for display or if they need a different contact for THIS order --}}
+                                    <label for="shipping_email_display" class="form-label">Email de contact (pour cette commande)</label>
+                                    <input type="email" name="shipping_email" id="shipping_email_display" value="{{ old('shipping_email', auth()->user()->email ?? '') }}" class="form-control @error('shipping_email') is-invalid @enderror">
                                     @error('shipping_email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    <small class="form-text text-muted">Votre email de compte est {{ auth()->user()->email }}. Les notifications iront à cet email.</small>
                                 </div>
+                                @endauth
                             </div>
 
                             <hr class="my-4">

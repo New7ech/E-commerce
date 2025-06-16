@@ -43,8 +43,8 @@ Route::delete('/cart/remove/{article}', [CartController::class, 'remove'])->name
 Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
 // Checkout Routes
-Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index')->middleware('auth'); // Ensure user is logged in
-Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process')->middleware('auth');
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index'); // Middleware removed for guest checkout
+Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process'); // Middleware removed for guest checkout
 
 // Admin Routes for Order Management
 // Temporarily removing 'admin' middleware for testing due to BindingResolutionException
@@ -96,3 +96,9 @@ Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 
 Route::get('/notifications/{id}', [NotificationController::class, 'show'])->name('notifications.show');
 Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
 
+// Wishlist Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/wishlist', [App\Http\Controllers\WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/add/{article}', [App\Http\Controllers\WishlistController::class, 'add'])->name('wishlist.add');
+    Route::delete('/wishlist/remove/{article}', [App\Http\Controllers\WishlistController::class, 'remove'])->name('wishlist.remove');
+});

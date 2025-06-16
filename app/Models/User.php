@@ -70,16 +70,45 @@ class User extends Authenticatable
             'is_admin' => 'boolean',
         ];
     }
-    public function role()
+    /**
+     * Get the role associated with the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function role(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Role::class);
     }
 
     /**
-     * Get the orders for the user.
+     * Get the orders placed by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function orders()
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Get the raw wishlist entries for the user.
+     * Each entry is a record in the 'wishlists' pivot table.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function wishlists(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
+     * Get the articles that the user has added to their wishlist.
+     * This provides direct access to Article models through the 'wishlists' table.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function wishlistedArticles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Article::class, 'wishlists', 'user_id', 'article_id')->withTimestamps();
     }
 }

@@ -118,4 +118,15 @@ class Article extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    /**
+     * Get the wishlist entries for this article.
+     * An article can appear in many users' wishlists.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function wishlists(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
 }

@@ -137,27 +137,98 @@ class ArticleController extends Controller
     {
         $search = $request->input('search');
         $category = $request->input('category');
+        $price_min = $request->input('price_min');
+        $price_max = $request->input('price_max');
+        $sort_by = $request->input('sort_by');
 
-        $articles = Article::with('categorie')
+        $articlesQuery = Article::with('categorie') // Eager load category for each article
+            // Apply search term if provided
             ->when($search, fn($query, $term) => $query->searchByText($term))
-            ->when($category, fn($query, $catId) => $query->where('category_id', $catId))
-            ->latest()
-            ->paginate(10); // Paginate for better performance
+            // Apply category filter if provided
+            ->when($category, fn($query, $catId) => $query->where('category_id', $catId));
 
-        $categories = Categorie::all();
+        // Apply price range filters
+        if ($price_min && $price_max) {
+            $articlesQuery->whereBetween('prix', [(float)$price_min, (float)$price_max]);
+        } elseif ($price_min) {
+            $articlesQuery->where('prix', '>=', (float)$price_min);
+        } elseif ($price_max) {
+            $articlesQuery->where('prix', '<=', (float)$price_max);
+        }
 
-        return view('products.index', compact('articles', 'categories', 'search', 'category'));
+        switch ($sort_by) {
+            case 'price_asc':
+                $articlesQuery->orderBy('prix', 'asc');
+                break;
+            case 'price_desc':
+                $articlesQuery->orderBy('prix', 'desc');
+                break;
+            case 'name_asc':
+                $articlesQuery->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $articlesQuery->orderBy('name', 'desc');
+                break;
+            case 'created_at_desc':
+                $articlesQuery->orderBy('created_at', 'desc');
+                break;
+            default:
+                $articlesQuery->latest(); // Default sort by created_at desc
+        }
+
+        $articles = $articlesQuery->paginate(10); // Paginate results
+
+        $categories = Categorie::all(); // For filter dropdown
+
+        // For wishlist buttons on product listing: get current user's wishlist article IDs
+        $userWishlistArticleIds = [];
+        if (auth()->check()) {
+            $userWishlistArticleIds = auth()->user()->wishlistedArticles()->pluck('articles.id')->toArray();
+        }
+
+        return view('products.index', compact(
+            'articles',
+            'categories',
+            'search',
+            'category',
+            'price_min',
+            'price_max',
+            'sort_by',
+            'userWishlistArticleIds' // Pass wishlist IDs to the view
+        ));
     }
 
     /**
      * Display the specified resource for public users.
      *
-     * @param  string $id
+     * @param  string $id The ID of the article to show.
      * @return \Illuminate\View\View
      */
     public function productShow(string $id): \Illuminate\View\View
     {
+        // Eager load relationships for the main article
         $article = Article::with('categorie', 'fournisseur', 'emplacement')->findOrFail($id);
-        return view('products.show', compact('article'));
+
+        $relatedArticles = collect(); // Default to an empty collection
+
+        // Fetch related articles from the same category, if category exists
+        if ($article->category_id) {
+            $relatedArticles = Article::with('categorie') // Eager load category for related articles
+                ->where('category_id', $article->category_id)
+                ->where('id', '!=', $article->id) // Exclude the current article
+                ->inRandomOrder() // Show random related articles
+                ->limit(4) // Limit the number of related articles
+                ->get();
+        }
+
+        // Check if the current article is in the authenticated user's wishlist
+        $isInWishlist = false;
+        if (auth()->check()) {
+            // This check is efficient if wishlistedArticles relationship is used.
+            // It performs a targeted query if the relationship isn't already loaded.
+            $isInWishlist = auth()->user()->wishlistedArticles()->where('articles.id', $article->id)->exists();
+        }
+
+        return view('products.show', compact('article', 'relatedArticles', 'isInWishlist'));
     }
 }
