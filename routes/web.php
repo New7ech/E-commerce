@@ -102,3 +102,30 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/wishlist/add/{article}', [App\Http\Controllers\WishlistController::class, 'add'])->name('wishlist.add');
     Route::delete('/wishlist/remove/{article}', [App\Http\Controllers\WishlistController::class, 'remove'])->name('wishlist.remove');
 });
+
+// Custom Authentication Routes for Guests
+Route::middleware('guest')->group(function () {
+    Route::get('/custom-register', [App\Http\Controllers\Auth\CustomRegisterController::class, 'create'])->name('custom.register');
+    Route::post('/custom-register', [App\Http\Controllers\Auth\CustomRegisterController::class, 'store']);
+
+    // Custom Login Routes
+    Route::get('/custom-login', [App\Http\Controllers\Auth\CustomLoginController::class, 'create'])->name('custom.login');
+    Route::post('/custom-login', [App\Http\Controllers\Auth\CustomLoginController::class, 'store']);
+    // Add a route named 'login' pointing to the custom login controller's create method
+    // This is to ensure Laravel's default Authenticate middleware redirects here if app/Http/Middleware/Authenticate.php is missing
+    Route::get('/login', [App\Http\Controllers\Auth\CustomLoginController::class, 'create'])->name('login');
+
+
+    // Custom Password Reset Link Request Routes
+    Route::get('/custom-forgot-password', [App\Http\Controllers\Auth\CustomForgotPasswordController::class, 'create'])->name('custom.password.request');
+    Route::post('/custom-forgot-password', [App\Http\Controllers\Auth\CustomForgotPasswordController::class, 'store'])->name('custom.password.email');
+
+    // Custom Password Reset Routes
+    Route::get('/custom-reset-password/{token}', [App\Http\Controllers\Auth\CustomResetPasswordController::class, 'create'])->name('custom.password.reset');
+    Route::post('/custom-reset-password', [App\Http\Controllers\Auth\CustomResetPasswordController::class, 'store'])->name('custom.password.update.action');
+});
+
+// Custom Authenticated Routes (e.g., Logout)
+Route::middleware('auth')->group(function () {
+    Route::post('/custom-logout', [App\Http\Controllers\Auth\CustomLoginController::class, 'destroy'])->name('custom.logout');
+});
