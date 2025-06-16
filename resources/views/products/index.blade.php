@@ -6,7 +6,7 @@
 <div class="page-header">
     <h3 class="fw-bold mb-3">Catalogue des Produits</h3>
     <ul class="breadcrumbs">
-        <li class="nav-home"><a href="{{ route('home') }}"><i class="icon-home"></i></a></li> {{-- Assuming home is general public home --}}
+        <li class="nav-home"><a href="#"><i class="icon-home"></i></a></li> {{-- Assuming home is general public home --}}
         <li class="separator"><i class="icon-arrow-right"></i></li>
         <li class="nav-item">Produits</li>
     </ul>

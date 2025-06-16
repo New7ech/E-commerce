@@ -6,7 +6,7 @@
 <div class="page-header">
     <h3 class="fw-bold mb-3">Ajouter un Article</h3>
     <ul class="breadcrumbs">
-        <li class="nav-home"><a href="{{ route('welcome') }}"><i class="icon-home"></i></a></li>
+        <li class="nav-home"><a href="#"><i class="icon-home"></i></a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
         <li class="nav-item"><a href="{{ route('articles.index') }}">Articles</a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
@@ -34,9 +34,9 @@
                 <form action="{{ route('articles.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="form-group">
-                        <label for="nom">Nom de l'article</label>
-                        <input type="text" class="form-control @error('nom') is-invalid @enderror" id="nom" name="nom" value="{{ old('nom') }}" required>
-                        @error('nom') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <label for="name">Nom de l'article</label>
+                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                        @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group">
@@ -55,9 +55,9 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="quantite_stock">Quantité en Stock</label>
-                                <input type="number" class="form-control @error('quantite_stock') is-invalid @enderror" id="quantite_stock" name="quantite_stock" value="{{ old('quantite_stock', 0) }}" required>
-                                @error('quantite_stock') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                <label for="quantite">Quantité en Stock</label>
+                                <input type="number" class="form-control @error('quantite') is-invalid @enderror" id="quantite" name="quantite" value="{{ old('quantite', 0) }}" required>
+                                @error('quantite') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
                     </div>

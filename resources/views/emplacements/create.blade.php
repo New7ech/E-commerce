@@ -6,7 +6,7 @@
 <div class="page-header">
     <h3 class="fw-bold mb-3">Ajouter un Emplacement</h3>
     <ul class="breadcrumbs">
-        <li class="nav-home"><a href="{{ route('welcome') }}"><i class="icon-home"></i></a></li>
+        <li class="nav-home"><a href="#"><i class="icon-home"></i></a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
         <li class="nav-item"><a href="{{ route('emplacements.index') }}">Emplacements</a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
