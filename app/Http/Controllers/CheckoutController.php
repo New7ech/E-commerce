@@ -8,37 +8,42 @@ use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB; // For database transactions
+use Illuminate\Support\Facades\DB; // Pour les transactions de base de données
 
+/**
+ * Contrôleur pour gérer le processus de paiement (checkout).
+ */
 class CheckoutController extends Controller
 {
     /**
-     * Display the checkout page with items from the cart.
-     * Verifies item availability and quantities before showing the page.
+     * Affiche la page de paiement avec les articles du panier.
+     * Vérifie la disponibilité et les quantités des articles avant d'afficher la page.
      *
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse La vue de paiement ou une redirection si le panier est vide/invalide.
      */
-    public function index()
+    public function index(): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
     {
-        $cart = Session::get('cart', []);
+        $cart = Session::get('cart', []); // Récupère le panier depuis la session.
         if (empty($cart)) {
-            return redirect()->route('products.index')->with('info', 'Your cart is empty. Please add items before proceeding to checkout.');
+            // Redirige vers la liste des produits si le panier est vide.
+            return redirect()->route('products.index')->with('info', 'Votre panier est vide. Veuillez ajouter des articles avant de passer à la caisse.');
         }
 
         $articlesInCart = [];
         $totalPrice = 0;
         $articleIds = array_keys($cart);
+        // Récupère les articles de la base de données pour vérifier les informations.
         $articles = Article::whereIn('id', $articleIds)->get()->keyBy('id');
 
         foreach ($cart as $id => $item) {
             if (isset($articles[$id])) {
                 $article = $articles[$id];
                 $quantity = $item['quantity'];
-                // Ensure quantity does not exceed available stock before checkout
+                // S'assure que la quantité ne dépasse pas le stock disponible avant le paiement.
                 if ($quantity > $article->quantite) {
-                    // Optionally, adjust quantity in cart here and notify user
-                    // For now, redirect back with an error
-                    return redirect()->route('cart.index')->with('error', "Quantity for article '{$article->name}' exceeds available stock. Please update your cart.");
+                    // Optionnellement, ajuster la quantité dans le panier ici et informer l'utilisateur.
+                    // Pour l'instant, redirige vers le panier avec une erreur.
+                    return redirect()->route('cart.index')->with('error', "La quantité pour l'article '{$article->name}' dépasse le stock disponible. Veuillez mettre à jour votre panier.");
                 }
                 $subtotal = $article->prix * $quantity;
                 $articlesInCart[] = [
@@ -52,61 +57,63 @@ class CheckoutController extends Controller
             }
         }
 
-        // If any item was removed because it's no longer available or IDs mismatch
+        // Si des articles ont été retirés parce qu'ils ne sont plus disponibles ou que les IDs ne correspondent pas.
         if (count($articlesInCart) !== count($cart)) {
-             // Re-calculate cart if some items were invalid / removed
+             // Recalcule le panier si certains articles étaient invalides / retirés.
             $validCart = [];
             foreach($articlesInCart as $validItem) {
                 $validCart[$validItem['id']] = ['quantity' => $validItem['quantity']];
             }
-            Session::put('cart', $validCart);
-            // if all items became invalid
+            Session::put('cart', $validCart); // Met à jour le panier en session avec seulement les articles valides.
+            // Si tous les articles sont devenus invalides.
             if(empty($articlesInCart)){
-                 return redirect()->route('products.index')->with('info', 'Some items in your cart are no longer available. Your cart has been updated.');
+                 return redirect()->route('products.index')->with('info', 'Certains articles de votre panier ne sont plus disponibles. Votre panier a été mis à jour.');
             }
-             return redirect()->route('cart.index')->with('info', 'Some items in your cart were updated. Please review before checkout.');
+             // Informer l'utilisateur que son panier a été mis à jour.
+             return redirect()->route('cart.index')->with('info', 'Certains articles de votre panier ont été mis à jour. Veuillez vérifier avant de passer à la caisse.');
         }
 
-
+        // Affiche la vue de paiement avec les articles et le prix total.
         return view('checkout.index', compact('articlesInCart', 'totalPrice'));
     }
 
     /**
-     * Process the checkout: validate input, create order, update stock, and simulate payment.
-     * Handles both authenticated and guest users.
+     * Traite le paiement : valide les entrées, crée la commande, met à jour le stock et simule le paiement.
+     * Gère à la fois les utilisateurs authentifiés et les invités.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant les informations de paiement.
+     * @return \Illuminate\Http\RedirectResponse Redirige vers une page de succès ou d'erreur.
      */
-    public function process(Request $request)
+    public function process(Request $request): \Illuminate\Http\RedirectResponse
     {
         $cart = Session::get('cart', []);
         if (empty($cart)) {
-            return redirect()->route('products.index')->with('info', 'Your cart is empty.');
+            return redirect()->route('products.index')->with('info', 'Votre panier est vide.');
         }
 
-        // Determine if the current user is a guest
+        // Détermine si l'utilisateur actuel est un invité.
         $isGuest = !auth()->check();
 
-        // Base validation rules for shipping and billing information
+        // Règles de validation de base pour les informations de livraison et de facturation.
         $validationRules = [
-            'shipping_name' => 'required|string|max:255',
-            'shipping_address' => 'required|string|max:255',
-            'shipping_city' => 'required|string|max:255',
-            'shipping_postal_code' => 'required|string|max:20',
-            'shipping_country' => 'required|string|max:255',
-            'billing_same_as_shipping' => 'nullable|boolean',
-            'billing_name' => 'required_if:billing_same_as_shipping,false|nullable|string|max:255',
-            'billing_address' => 'required_if:billing_same_as_shipping,false|nullable|string|max:255',
-            'billing_city' => 'required_if:billing_same_as_shipping,false|nullable|string|max:255',
-            'billing_postal_code' => 'required_if:billing_same_as_shipping,false|nullable|string|max:20',
-            'billing_country' => 'required_if:billing_same_as_shipping,false|nullable|string|max:255',
-            'payment_method' => 'required|string', // Placeholder for payment method
+            'shipping_name' => 'required|string|max:255', // Nom pour la livraison
+            'shipping_address' => 'required|string|max:255', // Adresse de livraison
+            'shipping_city' => 'required|string|max:255', // Ville de livraison
+            'shipping_postal_code' => 'required|string|max:20', // Code postal de livraison
+            'shipping_country' => 'required|string|max:255', // Pays de livraison
+            'billing_same_as_shipping' => 'nullable|boolean', // Case à cocher pour adresse de facturation identique
+            'billing_name' => 'required_if:billing_same_as_shipping,false|nullable|string|max:255', // Nom pour la facturation
+            'billing_address' => 'required_if:billing_same_as_shipping,false|nullable|string|max:255', // Adresse de facturation
+            'billing_city' => 'required_if:billing_same_as_shipping,false|nullable|string|max:255', // Ville de facturation
+            'billing_postal_code' => 'required_if:billing_same_as_shipping,false|nullable|string|max:20', // Code postal de facturation
+            'billing_country' => 'required_if:billing_same_as_shipping,false|nullable|string|max:255', // Pays de facturation
+            'payment_method' => 'required|string', // Méthode de paiement (ex: 'stripe', 'paypal')
         ];
 
-        // Add email validation rule for guest users
+        // Ajoute la règle de validation pour l'e-mail des utilisateurs invités.
         if ($isGuest) {
-            // 'guest_email' is used in the form for guests to avoid conflict with potential 'email' field from logged-in user data
+            // 'guest_email' est utilisé dans le formulaire pour les invités afin d'éviter les conflits
+            // avec un éventuel champ 'email' des données de l'utilisateur connecté.
             $validationRules['guest_email'] = 'required|email|max:255';
         }
 
@@ -115,49 +122,49 @@ class CheckoutController extends Controller
         if ($validator->fails()) {
             return redirect()->route('checkout.index')
                         ->withErrors($validator)
-                        ->withInput();
+                        ->withInput(); // Redirige avec les erreurs et les anciennes entrées.
         }
 
-        // --- Mock Payment Processing ---
-        $paymentSuccessful = true; // Simulate payment success
+        // --- Simulation du Traitement du Paiement ---
+        $paymentSuccessful = true; // Simule un succès de paiement. Mettre à false pour tester l'échec.
 
         if (!$paymentSuccessful) {
-            return redirect()->route('checkout.index')->with('error', 'Payment failed. Please try again.');
+            return redirect()->route('checkout.index')->with('error', 'Le paiement a échoué. Veuillez réessayer.');
         }
 
-        // --- Create Order: Wrap in a database transaction for atomicity ---
+        // --- Création de la Commande : Envelopper dans une transaction de base de données pour l'atomicité ---
         DB::beginTransaction();
         try {
             $totalPrice = 0;
-            $articleDetailsForOrder = []; // To store details needed for creating order items
+            $articleDetailsForOrder = []; // Pour stocker les détails nécessaires à la création des OrderItems.
             $articleIds = array_keys($cart);
 
-            // Retrieve articles from DB and lock them for update to prevent race conditions on stock quantity
+            // Récupère les articles de la BDD et les verrouille pour mise à jour afin d'éviter les conditions de concurrence sur le stock.
             $articlesFromDb = Article::whereIn('id', $articleIds)->lockForUpdate()->get()->keyBy('id');
 
-            // Validate stock and calculate total price
+            // Valide le stock et calcule le prix total.
             foreach ($cart as $id => $item) {
                 if (!isset($articlesFromDb[$id])) {
-                    DB::rollBack(); // Article removed from DB after cart was initiated
-                    return redirect()->route('cart.index')->with('error', "Article with ID {$id} is no longer available.");
+                    DB::rollBack(); // L'article a été retiré de la BDD après l'initialisation du panier.
+                    return redirect()->route('cart.index')->with('error', "L'article avec ID {$id} n'est plus disponible.");
                 }
                 $article = $articlesFromDb[$id];
                 $requestedQuantity = $item['quantity'];
 
                 if ($article->quantite < $requestedQuantity) {
                     DB::rollBack();
-                    return redirect()->route('cart.index')->with('error', "Not enough stock for article '{$article->name}'. Requested: {$requestedQuantity}, Available: {$article->quantite}. Please update your cart.");
+                    return redirect()->route('cart.index')->with('error', "Stock insuffisant pour l'article '{$article->name}'. Demandé : {$requestedQuantity}, Disponible : {$article->quantite}. Veuillez mettre à jour votre panier.");
                 }
                 $subtotal = $article->prix * $requestedQuantity;
                 $totalPrice += $subtotal;
-                $articleDetailsForOrder[$id] = [ // Store details for creating OrderItem later
-                    'article' => $article, // Keep the model for stock update
+                $articleDetailsForOrder[$id] = [ // Stocke les détails pour créer OrderItem plus tard.
+                    'article' => $article, // Conserve le modèle pour la mise à jour du stock.
                     'quantity' => $requestedQuantity,
-                    'price' => $article->prix, // Store price at time of purchase
+                    'price' => $article->prix, // Stocke le prix au moment de l'achat.
                 ];
             }
 
-            // Prepare shipping details from the request
+            // Prépare les détails de livraison à partir de la requête.
             $shippingDetails = [
                 'name' => $request->shipping_name,
                 'address' => $request->shipping_address,
@@ -166,7 +173,7 @@ class CheckoutController extends Controller
                 'country' => $request->shipping_country,
             ];
 
-            $billingDetails = $shippingDetails; // Default to same as shipping
+            $billingDetails = $shippingDetails; // Par défaut, identique à la livraison.
             if (!$request->boolean('billing_same_as_shipping')) {
                 $billingDetails = [
                     'name' => $request->billing_name,
@@ -177,10 +184,10 @@ class CheckoutController extends Controller
                 ];
             }
 
-            // Create the order record
+            // Crée l'enregistrement de la commande.
             $order = Order::create([
-                'user_id' => auth()->check() ? auth()->id() : null, // Null for guest users
-                'email' => $isGuest ? $request->guest_email : auth()->user()->email, // Guest's email or authenticated user's email
+                'user_id' => auth()->check() ? auth()->id() : null, // Null pour les invités.
+                'email' => $isGuest ? $request->guest_email : auth()->user()->email, // E-mail de l'invité ou de l'utilisateur connecté.
                 'shipping_name' => $shippingDetails['name'],
                 'shipping_address' => $shippingDetails['address'],
                 'shipping_city' => $shippingDetails['city'],
@@ -192,44 +199,45 @@ class CheckoutController extends Controller
                 'billing_postal_code' => $billingDetails['postal_code'],
                 'billing_country' => $billingDetails['country'],
                 'total_amount' => $totalPrice,
-                'status' => 'pending_payment', // Or 'processing' if payment is confirmed
+                'status' => 'pending_payment', // Ou 'processing' si le paiement est confirmé.
                 'payment_method' => $request->payment_method,
-                'payment_status' => 'pending', // Default payment status
+                'payment_status' => 'pending', // Statut de paiement par défaut.
             ]);
 
-            // Create order items and deduct stock
+            // Crée les articles de la commande et déduit le stock.
             foreach ($articleDetailsForOrder as $id => $details) {
                 OrderItem::create([
                     'order_id' => $order->id,
                     'article_id' => $id,
                     'quantity' => $details['quantity'],
-                    'price' => $details['price'], // Price at the time of order
+                    'price' => $details['price'], // Prix au moment de la commande.
                 ]);
 
-                // Decrease stock quantity for the article
-                $articleToUpdate = $details['article']; // Retains the locked Article model instance
+                // Diminue la quantité en stock pour l'article.
+                $articleToUpdate = $details['article']; // Conserve l'instance du modèle Article verrouillée.
                 $articleToUpdate->quantite -= $details['quantity'];
                 $articleToUpdate->save();
             }
 
-            // If payment simulation was successful, update order status
+            // Si la simulation de paiement a réussi, met à jour le statut de la commande.
             if ($paymentSuccessful) {
-                $order->status = 'processing'; // Or 'completed' if no further processing needed post-payment
-                $order->payment_status = 'paid';
+                $order->status = 'processing'; // Ou 'completed' si aucun traitement supplémentaire post-paiement.
+                $order->payment_status = 'paid'; // Met à jour le statut du paiement.
                 $order->save();
             }
 
-            DB::commit(); // All good, commit the transaction
+            DB::commit(); // Tout s'est bien passé, valide la transaction.
 
-            Session::forget('cart'); // Clear the cart after successful order placement
+            Session::forget('cart'); // Vide le panier après la passation de commande réussie.
 
-            // Redirect to a success page (e.g., home or a dedicated order confirmation page)
-            return redirect()->route('home')->with('success', 'Order placed successfully! Order ID: ' . $order->id);
+            // Redirige vers une page de succès (ex: accueil ou page de confirmation de commande dédiée).
+            return redirect()->route('home')->with('success', 'Commande passée avec succès ! ID de commande : ' . $order->id);
 
         } catch (\Exception $e) {
-            DB::rollBack(); // Something went wrong, rollback the transaction
-            // Log::error('Order processing failed: ' . $e->getMessage()); // It's good practice to log the actual error
-            return redirect()->route('checkout.index')->with('error', 'Order processing failed. Please try again. Details: ' . $e->getMessage())->withInput();
+            DB::rollBack(); // Quelque chose s'est mal passé, annule la transaction.
+            // Log::error('Le traitement de la commande a échoué : ' . $e->getMessage()); // Bonne pratique : enregistrer l'erreur réelle.
+            // Redirige vers la page de paiement avec un message d'erreur et les entrées.
+            return redirect()->route('checkout.index')->with('error', 'Le traitement de la commande a échoué. Veuillez réessayer. Détails : ' . $e->getMessage())->withInput();
         }
     }
 }

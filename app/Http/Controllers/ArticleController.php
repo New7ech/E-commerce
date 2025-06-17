@@ -13,59 +13,71 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Contrôleur pour la gestion des articles.
+ * Gère les opérations CRUD pour les articles ainsi que l'affichage public des produits.
+ */
 class ArticleController extends Controller
 {
     /**
-     * Affiche une liste des ressources.
+     * Affiche une liste des articles pour l'administration, avec une fonctionnalité de recherche.
      *
-     * @param  \Illuminate\Http\Request  $request La requête HTTP.
-     * @return \Illuminate\View\View La vue contenant la liste des articles.
+     * @param  \Illuminate\Http\Request  $request La requête HTTP, peut contenir un terme de recherche.
+     * @return \Illuminate\View\View La vue contenant la liste des articles pour l'administration.
      */
     public function index(Request $request): \Illuminate\View\View
     {
-        $search = $request->input('search');
+        $search = $request->input('search'); // Récupère le terme de recherche s'il existe
 
-        $articles = Article::when($search, fn($query, $term) => $query->searchByText($term))->latest()->get();
+        // Construit la requête pour les articles, applique la recherche si un terme est fourni,
+        // et trie les résultats par date de création (les plus récents d'abord).
+        $articles = Article::when($search, fn($query, $term) => $query->searchByText($term))
+                            ->latest()
+                            ->get();
 
         return view('articles.index', compact('articles'));
     }
 
     /**
-     * Affiche le formulaire de création d'une nouvelle ressource.
+     * Affiche le formulaire de création d'un nouvel article.
+     * Prépare les données nécessaires (catégories, fournisseurs, emplacements, utilisateurs) pour le formulaire.
      *
-     * @return \Illuminate\View\View La vue du formulaire de création.
+     * @return \Illuminate\View\View La vue du formulaire de création d'article.
      */
     public function create(): \Illuminate\View\View
     {
-        $categories = Categorie::all();
-        $fournisseurs = Fournisseur::all();
-        $emplacements = Emplacement::all();
-        $users = User::all();
+        $categories = Categorie::all(); // Récupère toutes les catégories
+        $fournisseurs = Fournisseur::all(); // Récupère tous les fournisseurs
+        $emplacements = Emplacement::all(); // Récupère tous les emplacements
+        $users = User::all(); // Récupère tous les utilisateurs (pour 'created_by' ou autre)
         return view('articles.create', compact('categories', 'fournisseurs', 'emplacements', 'users'));
     }
 
     /**
-     * Enregistre une nouvelle ressource dans la base de données.
+     * Enregistre un nouvel article dans la base de données.
+     * Gère également le téléversement de l'image de l'article si elle est fournie.
      *
-     * @param  \App\Http\Requests\StoreArticleRequest  $request La requête de stockage validée.
+     * @param  \App\Http\Requests\StoreArticleRequest  $request La requête validée contenant les données de l'article.
      * @return \Illuminate\Http\RedirectResponse Une redirection vers la liste des articles avec un message de succès.
      */
     public function store(StoreArticleRequest $request): \Illuminate\Http\RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->validated(); // Récupère les données validées
 
+        // Si une image est téléversée, la stocke et met à jour le chemin dans les données
         if ($request->hasFile('image_path')) {
-            $path = $request->file('image_path')->store('articles', 'public');
+            $path = $request->file('image_path')->store('articles', 'public'); // Stocke dans 'storage/app/public/articles'
             $data['image_path'] = $path;
         }
 
+        // Crée l'article avec les données et l'ID de l'utilisateur authentifié
         $article = Article::create($data + ['created_by' => auth()->id()]);
 
         return redirect()->route('articles.index')->with('success', 'Article créé avec succès.');
     }
 
     /**
-     * Affiche la ressource spécifiée.
+     * Affiche les détails d'un article spécifique (pour l'administration).
      *
      * @param  \App\Models\Article  $article L'instance de l'article à afficher.
      * @return \Illuminate\View\View La vue affichant les détails de l'article.
@@ -76,62 +88,71 @@ class ArticleController extends Controller
     }
 
     /**
-     * Affiche le formulaire de modification de la ressource spécifiée.
+     * Affiche le formulaire de modification d'un article existant.
+     * Prépare les données nécessaires (catégories, fournisseurs, emplacements) pour le formulaire.
      *
      * @param  \App\Models\Article  $article L'instance de l'article à modifier.
-     * @return \Illuminate\View\View La vue du formulaire de modification.
+     * @return \Illuminate\View\View La vue du formulaire de modification d'article.
      */
     public function edit(Article $article): \Illuminate\View\View
     {
-        $categories = Categorie::all();
-        $fournisseurs = Fournisseur::all();
-        $emplacements = Emplacement::all();
+        $categories = Categorie::all(); // Récupère toutes les catégories
+        $fournisseurs = Fournisseur::all(); // Récupère tous les fournisseurs
+        $emplacements = Emplacement::all(); // Récupère tous les emplacements
         return view('articles.edit', compact('article', 'categories', 'fournisseurs', 'emplacements'));
     }
 
     /**
-     * Met à jour la ressource spécifiée dans la base de données.
+     * Met à jour un article spécifique dans la base de données.
+     * Gère également le remplacement de l'image de l'article si une nouvelle est fournie.
      *
-     * @param  \App\Http\Requests\UpdateArticleRequest  $request La requête de mise à jour validée.
+     * @param  \App\Http\Requests\UpdateArticleRequest  $request La requête validée contenant les données de mise à jour.
      * @param  \App\Models\Article  $article L'instance de l'article à mettre à jour.
      * @return \Illuminate\Http\RedirectResponse Une redirection vers la liste des articles avec un message de succès.
      */
     public function update(UpdateArticleRequest $request, Article $article): \Illuminate\Http\RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->validated(); // Récupère les données validées
 
+        // Si une nouvelle image est téléversée
         if ($request->hasFile('image_path')) {
-            // Delete old image if it exists
+            // Supprime l'ancienne image si elle existe
             if ($article->image_path) {
                 Storage::disk('public')->delete($article->image_path);
             }
+            // Stocke la nouvelle image et met à jour le chemin
             $path = $request->file('image_path')->store('articles', 'public');
             $data['image_path'] = $path;
         }
 
-        $article->update($data);
+        $article->update($data); // Met à jour l'article
 
         return redirect()->route('articles.index')->with('success', 'Article mis à jour avec succès.');
     }
 
     /**
-     * Supprime la ressource spécifiée de la base de données.
+     * Supprime un article spécifique de la base de données.
      *
      * @param  \App\Models\Article  $article L'instance de l'article à supprimer.
      * @return \Illuminate\Http\RedirectResponse Une redirection vers la liste des articles avec un message de succès.
      */
     public function destroy(Article $article): \Illuminate\Http\RedirectResponse
     {
-        $article->delete();
+        // Note: La suppression de l'image associée pourrait être ajoutée ici si nécessaire
+        // if ($article->image_path) {
+        //     Storage::disk('public')->delete($article->image_path);
+        // }
+        $article->delete(); // Supprime l'article
 
         return redirect()->route('articles.index')->with('success', 'Article supprimé avec succès.');
     }
 
     /**
-     * Display a listing of the resource for public users.
+     * Affiche une liste paginée des produits pour les utilisateurs publics.
+     * Permet le filtrage par recherche, catégorie, prix et le tri.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\View\View
+     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant les paramètres de filtrage et de tri.
+     * @return \Illuminate\View\View La vue de la liste des produits.
      */
     public function productList(Request $request): \Illuminate\View\View
     {
@@ -141,13 +162,13 @@ class ArticleController extends Controller
         $price_max = $request->input('price_max');
         $sort_by = $request->input('sort_by');
 
-        $articlesQuery = Article::with('categorie') // Eager load category for each article
-            // Apply search term if provided
+        $articlesQuery = Article::with('categorie') // Charge la relation catégorie pour chaque article (optimisation)
+            // Applique le filtre de recherche textuelle si fourni
             ->when($search, fn($query, $term) => $query->searchByText($term))
-            // Apply category filter if provided
+            // Applique le filtre par catégorie si fourni
             ->when($category, fn($query, $catId) => $query->where('category_id', $catId));
 
-        // Apply price range filters
+        // Applique les filtres de fourchette de prix
         if ($price_min && $price_max) {
             $articlesQuery->whereBetween('prix', [(float)$price_min, (float)$price_max]);
         } elseif ($price_min) {
@@ -156,6 +177,7 @@ class ArticleController extends Controller
             $articlesQuery->where('prix', '<=', (float)$price_max);
         }
 
+        // Applique le tri selon le critère choisi
         switch ($sort_by) {
             case 'price_asc':
                 $articlesQuery->orderBy('prix', 'asc');
@@ -173,14 +195,15 @@ class ArticleController extends Controller
                 $articlesQuery->orderBy('created_at', 'desc');
                 break;
             default:
-                $articlesQuery->latest(); // Default sort by created_at desc
+                $articlesQuery->latest(); // Tri par défaut : les plus récents d'abord
         }
 
-        $articles = $articlesQuery->paginate(10); // Paginate results
+        $articles = $articlesQuery->paginate(10); // Pagine les résultats
 
-        $categories = Categorie::all(); // For filter dropdown
+        $categories = Categorie::all(); // Pour le menu déroulant de filtre par catégorie
 
-        // For wishlist buttons on product listing: get current user's wishlist article IDs
+        // Pour les boutons de liste de souhaits sur la liste des produits :
+        // récupère les IDs des articles dans la liste de souhaits de l'utilisateur actuel
         $userWishlistArticleIds = [];
         if (auth()->check()) {
             $userWishlistArticleIds = auth()->user()->wishlistedArticles()->pluck('articles.id')->toArray();
@@ -194,38 +217,39 @@ class ArticleController extends Controller
             'price_min',
             'price_max',
             'sort_by',
-            'userWishlistArticleIds' // Pass wishlist IDs to the view
+            'userWishlistArticleIds' // Transmet les IDs de la liste de souhaits à la vue
         ));
     }
 
     /**
-     * Display the specified resource for public users.
+     * Affiche la page de détail d'un produit spécifique pour les utilisateurs publics.
+     * Charge également les articles similaires et vérifie si l'article est dans la liste de souhaits de l'utilisateur.
      *
-     * @param  string $id The ID of the article to show.
-     * @return \Illuminate\View\View
+     * @param  string $id L'ID de l'article à afficher.
+     * @return \Illuminate\View\View La vue de la page du produit.
      */
     public function productShow(string $id): \Illuminate\View\View
     {
-        // Eager load relationships for the main article
+        // Charge l'article avec ses relations (catégorie, fournisseur, emplacement) pour éviter les requêtes N+1.
         $article = Article::with('categorie', 'fournisseur', 'emplacement')->findOrFail($id);
 
-        $relatedArticles = collect(); // Default to an empty collection
+        $relatedArticles = collect(); // Initialise une collection vide pour les articles similaires
 
-        // Fetch related articles from the same category, if category exists
-        if ($article->category_id) {
-            $relatedArticles = Article::with('categorie') // Eager load category for related articles
-                ->where('category_id', $article->category_id)
-                ->where('id', '!=', $article->id) // Exclude the current article
-                ->inRandomOrder() // Show random related articles
-                ->limit(4) // Limit the number of related articles
+        // Récupère des articles similaires de la même catégorie, si la catégorie existe
+        if ($article->categorie) { // Vérifie si l'article a une catégorie associée
+            $relatedArticles = Article::with('categorie') // Charge la catégorie pour les articles similaires
+                ->where('category_id', $article->category_id) // Doit être dans la même catégorie
+                ->where('id', '!=', $article->id) // Exclut l'article actuel
+                ->inRandomOrder() // Affiche des articles similaires aléatoires
+                ->limit(4) // Limite le nombre d'articles similaires affichés
                 ->get();
         }
 
-        // Check if the current article is in the authenticated user's wishlist
+        // Vérifie si l'article actuel est dans la liste de souhaits de l'utilisateur authentifié
         $isInWishlist = false;
         if (auth()->check()) {
-            // This check is efficient if wishlistedArticles relationship is used.
-            // It performs a targeted query if the relationship isn't already loaded.
+            // Cette vérification est efficace si la relation wishlistedArticles est utilisée.
+            // Elle effectue une requête ciblée si la relation n'est pas déjà chargée.
             $isInWishlist = auth()->user()->wishlistedArticles()->where('articles.id', $article->id)->exists();
         }
 
