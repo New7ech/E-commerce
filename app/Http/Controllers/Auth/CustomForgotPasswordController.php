@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 // use Illuminate\Support\Facades\Password; // Not using Laravel's default broker directly here
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail; // Import Mail facade
+use Illuminate\Support\Facades\Log; // Import Log facade
 use App\Mail\CustomPasswordResetLinkMail; // Import Mailable
 
 
@@ -75,7 +76,7 @@ class CustomForgotPasswordController extends Controller
         } catch (\Exception $e) {
             // Log the error or handle it gracefully if mail sending fails
             // For now, we'll proceed, but in production, you might want to inform the user or retry
-            // Log::error('Failed to send password reset email: ' . $e->getMessage());
+            Log::error('Failed to send password reset email: ' . $e->getMessage());
             // If mail is critical, you might even rollback the token storage or queue the email.
             // For this exercise, we'll assume it's okay to show success even if mail fails silently here,
             // or rely on global exception handling. A better approach would be to queue emails.

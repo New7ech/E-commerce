@@ -27,11 +27,14 @@ use Illuminate\Support\Facades\Route;
 
 
 
+<<<<<<< HEAD
+=======
 
 Route::get('/home', function () {
     return view('home');
 })->name('home');
 
+>>>>>>> main
 Route::get('/products', [ArticleController::class, 'productList'])->name('products.index');
 
 Route::get('/products/{id}', [ArticleController::class, 'productShow'])->name('products.show');
@@ -83,7 +86,6 @@ Route::resource('permissions', PermissionController::class);
 Route::resource('categories', CategorieController::class);
 Route::resource('fournisseurs', FournisseurController::class);
 Route::resource('emplacements',EmplacementController::class);
-Route::resource('articles', ArticleController::class);
 Route::resource('factures', FactureController::class);
 Route::resource('accueil', AccueilController::class); // This likely creates a GET '/' route already if 'index' is typical resource method
 // Ensure the primary GET / route is explicitly named 'home' and points to AccueilController@index
