@@ -27,6 +27,11 @@ use Illuminate\Support\Facades\Route;
 
 
 
+
+
+
+
+
 Route::get('/products', [ArticleController::class, 'productList'])->name('products.index');
 
 Route::get('/products/{id}', [ArticleController::class, 'productShow'])->name('products.show');
@@ -75,6 +80,7 @@ Route::middleware('auth')->group(function () {
 Route::resource('users', UserController::class);
 Route::resource('roles', RoleController::class);
 Route::resource('permissions', PermissionController::class);
+Route::resource('articles', ArticleController::class);
 Route::resource('categories', CategorieController::class);
 Route::resource('fournisseurs', FournisseurController::class);
 Route::resource('emplacements',EmplacementController::class);
