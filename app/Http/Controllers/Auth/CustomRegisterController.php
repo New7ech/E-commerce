@@ -51,7 +51,7 @@ class CustomRegisterController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role_id' => $clientRole ? $clientRole->id : null, // Assign role_id if Client role found
-            'created_by' => 1, // As per requirement, set created_by to 1 (presumably an admin or system user ID)
+            'created_by' => null, // For self-registration, created_by is null
             // 'email_verified_at' => now(), // Optionally, verify email straight away
         ]);
 

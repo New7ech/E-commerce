@@ -19,7 +19,7 @@
             <div class="card-header">
                 <div class="d-flex align-items-center">
                     <h4 class="card-title">Liste des Articles</h4>
-                    <a href="{{ route('articles.create') }}" class="btn btn-primary btn-round ms-auto">
+                    <a href="{{ route('admin.articles.create') }}" class="btn btn-primary btn-round ms-auto">
                         <i class="fa fa-plus"></i>
                         Ajouter un Article
                     </a>
@@ -46,13 +46,10 @@
                                 <td>{{ $article->quantite }}</td>
                                 <td>
                                     <div class="form-button-action">
-                                        <a href="{{ route('articles.show', $article->id) }}" data-bs-toggle="tooltip" title="Voir" class="btn btn-link btn-primary btn-lg">
-                                            <i class="fa fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('articles.edit', $article->id) }}" data-bs-toggle="tooltip" title="Modifier" class="btn btn-link btn-primary btn-lg">
+                                        <a href="{{ route('admin.articles.edit', $article->id) }}" data-bs-toggle="tooltip" title="Modifier" class="btn btn-link btn-primary btn-lg">
                                             <i class="fa fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('articles.destroy', $article->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');">
+                                        <form action="{{ route('admin.articles.destroy', $article->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" data-bs-toggle="tooltip" title="Supprimer" class="btn btn-link btn-danger">
