@@ -15,7 +15,7 @@ use App\Http\Requests\UpdateAccueilRequest;
 class AccueilController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * a listing of the resource.
      */
 public function index()
 {
