@@ -73,15 +73,10 @@ class CustomResetPasswordController extends Controller
             ->where('email', $request->email)
             ->first();
 
-        // Verify the token and its expiration
-        if (!$passwordResetToken || !Hash::check($request->token, $passwordResetToken->token)) {
-             // If storing plain tokens, the check would be: $request->token !== $passwordResetToken->token
-             // The initial setup stored plain token: 'token' => $token.
-             // So, we should compare plain tokens or switch to storing hashed tokens.
-             // For now, assuming plain token was stored:
-             if (!$passwordResetToken || $request->token !== $passwordResetToken->token) {
-                return back()->withErrors(['email' => 'Invalid or expired password reset token.'])->withInput($request->only('email', 'token'));
-             }
+        // Verify the token
+        // The token stored in the database is plain text as per CustomForgotPasswordController.
+        if (!$passwordResetToken || $request->token !== $passwordResetToken->token) {
+            return back()->withErrors(['email' => 'Invalid or expired password reset token.'])->withInput($request->only('email', 'token'));
         }
 
         // Check token expiry (e.g., within 60 minutes)
