@@ -6,9 +6,9 @@
 <div class="page-header">
     <h3 class="fw-bold mb-3">Modifier l'Article</h3>
     <ul class="breadcrumbs">
-        <li class="nav-home"><a href="{{ route('welcome') }}"><i class="icon-home"></i></a></li>
+        <li class="nav-home"><a href="{{ route('admin.articles.index') }}"><i class="icon-home"></i></a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
-        <li class="nav-item"><a href="{{ route('articles.index') }}">Articles</a></li>
+        <li class="nav-item"><a href="{{ route('admin.articles.index') }}">Articles</a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
         <li class="nav-item">Modifier : {{ $article->name }}</li>
     </ul>
@@ -31,7 +31,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('articles.update', $article->id) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.articles.update', $article->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="form-group">
@@ -108,7 +108,7 @@
 
                     <div class="card-action">
                         <button type="submit" class="btn btn-success">Enregistrer les modifications</button>
-                        <a href="{{ route('articles.index') }}" class="btn btn-danger">Annuler</a>
+                        <a href="{{ route('admin.articles.index') }}" class="btn btn-danger">Annuler</a>
                     </div>
                 </form>
             </div>
