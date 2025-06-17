@@ -13,60 +13,88 @@ use App\Notifications\StockLowNotification;
 use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 
+/**
+ * Contrôleur pour la gestion des factures.
+ * Gère les opérations CRUD pour les factures, la génération de PDF,
+ * et la vérification des stocks lors de la création/mise à jour.
+ */
 class FactureController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Affiche une liste paginée des factures avec une fonctionnalité de recherche.
+     *
+     * @param  \Illuminate\Http\Request  $request La requête HTTP, peut contenir un terme de recherche.
+     * @return \Illuminate\View\View La vue listant les factures.
+     */
+    public function index(Request $request): \Illuminate\View\View
     {
-        $query = Facture::query();
+        $query = Facture::query(); // Initialise une requête Eloquent pour les factures.
 
+        // Applique un filtre de recherche si un terme est fourni.
         if ($request->has('search')) {
             $search = $request->input('search');
+            // Recherche par ID de facture ou par statut de paiement.
             $query->where('id', 'like', "%{$search}%")
                   ->orWhere('statut_paiement', 'like', "%{$search}%");
         }
 
-        $factures = $query->paginate(15);
+        $factures = $query->paginate(15); // Pagine les résultats.
 
         return view('factures.index', compact('factures'));
     }
 
-    public function create()
+    /**
+     * Affiche le formulaire de création d'une nouvelle facture.
+     *
+     * @return \Illuminate\View\View La vue du formulaire de création avec la liste des articles.
+     */
+    public function create(): \Illuminate\View\View
     {
         return view('factures.create', [
-            'articles' => Article::all(),
+            'articles' => Article::all(), // Fournit tous les articles pour la sélection.
         ]);
     }
 
-    public function store(Request $request)
+    /**
+     * Enregistre une nouvelle facture dans la base de données.
+     * Calcule les montants, décrémente les stocks, et génère un PDF de la facture.
+     *
+     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant les données de la facture.
+     * @return \Symfony\Component\HttpFoundation\Response|\Illuminate\Http\RedirectResponse Le PDF de la facture ou une redirection en cas d'erreur.
+     */
+    public function store(Request $request) // Le type de retour peut être Response pour le PDF.
     {
+        // Valide les données de la requête.
         $validated = $request->validate([
-            'client_nom' => 'required|string|max:255', // <-- rendre obligatoire
-            'client_prenom' => 'nullable|string|max:255',
-            'client_adresse' => 'nullable|string|max:255',
-            'client_telephone' => 'nullable|string|max:20',
-            'client_email' => 'nullable|email|max:255',
-            'statut_paiement' => 'required|in:impayé,payé',
-            'mode_paiement' => 'nullable|string',
-            'articles' => 'required|array',
-            'articles.*.article_id' => 'required|exists:articles,id',
-            'articles.*.quantity' => 'required|integer|min:1',
+            'client_nom' => 'required|string|max:255', // Nom du client (rendu obligatoire).
+            'client_prenom' => 'nullable|string|max:255', // Prénom du client.
+            'client_adresse' => 'nullable|string|max:255', // Adresse du client.
+            'client_telephone' => 'nullable|string|max:20', // Téléphone du client.
+            'client_email' => 'nullable|email|max:255', // Email du client.
+            'statut_paiement' => 'required|in:impayé,payé', // Statut du paiement.
+            'mode_paiement' => 'nullable|string', // Mode de paiement.
+            'articles' => 'required|array', // Liste des articles (obligatoire).
+            'articles.*.article_id' => 'required|exists:articles,id', // Chaque article doit exister.
+            'articles.*.quantity' => 'required|integer|min:1', // Quantité minimale de 1 pour chaque article.
         ]);
 
-        DB::beginTransaction();
+        DB::beginTransaction(); // Démarre une transaction de base de données.
 
         try {
             $articlesData = $validated['articles'];
             $montantHTTotal = 0;
-            $details = [];
+            $details = []; // Pour stocker les détails des lignes de facture pour le PDF.
 
+            // Vérifie le stock et calcule les montants pour chaque article.
             foreach ($articlesData as $index => $item) {
-                $article = Article::findOrFail($item['article_id']);
+                $article = Article::findOrFail($item['article_id']); // Trouve l'article ou échoue.
 
+                // Vérifie si la quantité demandée est disponible en stock.
                 if ($item['quantity'] > $article->quantite) {
-                    DB::rollBack();
+                    DB::rollBack(); // Annule la transaction.
                     return redirect()->back()
                         ->withErrors(["articles.{$index}.quantity" => "Quantité en stock insuffisante pour l'article {$article->name}."])
-                        ->withInput();
+                        ->withInput(); // Retourne avec une erreur spécifique à la ligne d'article.
                 }
 
                 $prixUnitaire = $article->prix;
@@ -79,22 +107,23 @@ class FactureController extends Controller
                     'montant_ht' => $ligneHT,
                 ];
 
-                $montantHTTotal += $ligneHT;
+                $montantHTTotal += $ligneHT; // Ajoute au montant total hors taxes.
             }
 
-            $tva = 18;
-            $montantTTC = $montantHTTotal * 1.18;
+            $tva = 18; // Taux de TVA (ex: 18%).
+            $montantTTC = $montantHTTotal * (1 + $tva / 100); // Calcule le montant toutes taxes comprises.
 
-            // Générer un numéro de facture
+            // Génère un numéro de facture unique.
             $numero = 'FAC-' . date('Y') . '-' . str_pad(Facture::withTrashed()->count() + 1, 4, '0', STR_PAD_LEFT);
 
+            // Crée la facture.
             $facture = Facture::create([
                 'client_nom' => $validated['client_nom'],
                 'client_prenom' => $validated['client_prenom'],
                 'client_adresse' => $validated['client_adresse'],
                 'client_telephone' => $validated['client_telephone'],
                 'client_email' => $validated['client_email'],
-                'numero' => $numero, // Inclure le numéro de facture
+                'numero' => $numero, // Inclut le numéro de facture.
                 'date_facture' => now(),
                 'montant_ht' => $montantHTTotal,
                 'tva' => $tva,
@@ -104,6 +133,7 @@ class FactureController extends Controller
                 'date_paiement' => $validated['statut_paiement'] === 'payé' ? now() : null,
             ]);
 
+            // Attache les articles à la facture et décrémente les stocks.
             foreach ($details as $d) {
                 $facture->articles()->attach($d['article']->id, [
                     'quantite' => $d['quantity'],
@@ -112,48 +142,70 @@ class FactureController extends Controller
                     'updated_at' => now(),
                 ]);
 
-                $d['article']->decrement('quantite', $d['quantity']);
+                $d['article']->decrement('quantite', $d['quantity']); // Décrémente le stock de l'article.
 
-                if ($d['article']->fresh()->quantite < 5) {
-                    Notification::send(User::all(), new StockLowNotification($d['article'], 5));
+                // Envoie une notification si le stock de l'article est bas.
+                if ($d['article']->fresh()->quantite < 5) { // 'fresh()' pour obtenir la dernière valeur du stock.
+                    Notification::send(User::role('admin')->get(), new StockLowNotification($d['article'], 5)); // Notifie les admins.
                 }
             }
 
+            // Génère le PDF de la facture.
             $pdf = Pdf::loadView('factures.pdf', [
                 'facture' => $facture,
-                'details' => $details,
+                'details' => $details, // Passe les détails calculés à la vue PDF.
             ]);
 
-            DB::commit();
-            return $pdf->download("Facture_{$facture->id}.pdf");
+            DB::commit(); // Valide la transaction.
+            return $pdf->download("Facture_{$facture->numero}.pdf"); // Télécharge le PDF.
 
         } catch (ModelNotFoundException $e) {
-            DB::rollBack();
-            Log::error('Article non trouvé', ['error' => $e->getMessage()]);
-            return redirect()->back()->withErrors(['article_id' => 'Article introuvable !']);
+            DB::rollBack(); // Annule la transaction en cas d'erreur.
+            Log::error('Article non trouvé lors de la création de la facture.', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['article_id' => 'Un article sélectionné est introuvable.'])->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Erreur création facture : ' . $e->getMessage());
-            return redirect()->back()->withErrors(['general' => 'Une erreur est survenue : ' . $e->getMessage()]);
+            Log::error('Erreur lors de la création de la facture : ' . $e->getMessage(), ['exception' => $e]);
+            return redirect()->back()->withErrors(['general' => 'Une erreur est survenue lors de la création de la facture : ' . $e->getMessage()])->withInput();
         }
     }
 
-
-    public function show(Facture $facture)
+    /**
+     * Affiche les détails d'une facture spécifique.
+     *
+     * @param  \App\Models\Facture  $facture La facture à afficher.
+     * @return \Illuminate\View\View La vue affichant les détails de la facture.
+     */
+    public function show(Facture $facture): \Illuminate\View\View
     {
-        return view('factures.show', compact('facture'));
+        return view('factures.show', compact('facture')); // Passe la facture à la vue.
     }
 
-    public function edit(Facture $facture)
+    /**
+     * Affiche le formulaire de modification d'une facture existante.
+     *
+     * @param  \App\Models\Facture  $facture La facture à modifier.
+     * @return \Illuminate\View\View La vue du formulaire de modification.
+     */
+    public function edit(Facture $facture): \Illuminate\View\View
     {
         return view('factures.edit', [
             'facture' => $facture,
-            'articles' => Article::all(),
+            'articles' => Article::all(), // Fournit tous les articles pour la sélection.
         ]);
     }
 
-    public function update(Request $request, Facture $facture)
+    /**
+     * Met à jour une facture spécifique dans la base de données.
+     * Recalcule les montants et met à jour les stocks si les articles sont modifiés.
+     *
+     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant les données de mise à jour.
+     * @param  \App\Models\Facture  $facture La facture à mettre à jour.
+     * @return \Illuminate\Http\RedirectResponse Redirige vers la liste des factures avec un message de succès ou d'erreur.
+     */
+    public function update(Request $request, Facture $facture): \Illuminate\Http\RedirectResponse
     {
+        // Valide les données de la requête.
         $validated = $request->validate([
             'client_nom' => 'nullable|string|max:255',
             'client_prenom' => 'nullable|string|max:255',
@@ -162,44 +214,63 @@ class FactureController extends Controller
             'client_email' => 'nullable|email|max:255',
             'statut_paiement' => 'required|in:impayé,payé',
             'mode_paiement' => 'nullable|string',
-            'articles' => 'nullable|array',
-            'articles.*.article_id' => 'required|exists:articles,id',
-            'articles.*.quantity' => 'required|integer|min:1',
+            'articles' => 'nullable|array', // Les articles peuvent être facultatifs lors de la mise à jour si seule le statut change.
+            'articles.*.article_id' => 'required_with:articles|exists:articles,id', // Requis si 'articles' est présent.
+            'articles.*.quantity' => 'required_with:articles|integer|min:1', // Requis si 'articles' est présent.
         ]);
 
-        DB::beginTransaction();
+        DB::beginTransaction(); // Démarre une transaction.
 
         try {
-            $articlesData = $validated['articles'];
             $montantHTTotal = 0;
-            $details = [];
+            $details = []; // Pour stocker les nouveaux détails des lignes de facture.
 
-            foreach ($articlesData as $index => $item) {
-                $article = Article::findOrFail($item['article_id']);
-
-                if ($item['quantity'] > $article->quantite) {
-                    DB::rollBack();
-                    return redirect()->back()
-                        ->withErrors(["articles.{$index}.quantity" => "Quantité en stock insuffisante pour l'article {$article->name}."])
-                        ->withInput();
+            // Si des articles sont fournis, traite-les (potentiellement pour remplacer les anciens).
+            if (!empty($validated['articles'])) {
+                $articlesData = $validated['articles'];
+                 // Annuler les anciennes quantités d'articles avant la mise à jour
+                foreach ($facture->articles as $articlePivot) {
+                    $articleModel = Article::find($articlePivot->id);
+                    if ($articleModel) {
+                        $articleModel->increment('quantite', $articlePivot->pivot->quantite);
+                    }
                 }
 
-                $prixUnitaire = $article->prix;
-                $ligneHT = $prixUnitaire * $item['quantity'];
 
-                $details[] = [
-                    'article' => $article,
-                    'quantity' => $item['quantity'],
-                    'prix_unitaire' => $prixUnitaire,
-                    'montant_ht' => $ligneHT,
-                ];
+                foreach ($articlesData as $index => $item) {
+                    $article = Article::findOrFail($item['article_id']);
 
-                $montantHTTotal += $ligneHT;
+                    // Vérifie le stock disponible (en tenant compte de la quantité déjà sur la facture si l'article n'est pas nouveau).
+                    $quantiteActuelleFacture = 0; // À implémenter si on veut permettre l'édition fine des lignes existantes.
+                                                // Pour cette version, on suppose que les articles sont remplacés.
+                    if ($item['quantity'] > ($article->quantite + $quantiteActuelleFacture)) {
+                        DB::rollBack();
+                        return redirect()->back()
+                            ->withErrors(["articles.{$index}.quantity" => "Quantité en stock insuffisante pour l'article {$article->name}."])
+                            ->withInput();
+                    }
+
+                    $prixUnitaire = $article->prix;
+                    $ligneHT = $prixUnitaire * $item['quantity'];
+                    $details[] = [
+                        'article' => $article,
+                        'quantity' => $item['quantity'],
+                        'prix_unitaire' => $prixUnitaire,
+                        'montant_ht' => $ligneHT,
+                    ];
+                    $montantHTTotal += $ligneHT;
+                }
+                $tva = 18; // Taux de TVA.
+                $montantTTC = $montantHTTotal * (1 + $tva / 100);
+            } else {
+                // Si aucun article n'est fourni, conserve les montants existants (utile si on ne met à jour que le statut).
+                $montantHTTotal = $facture->montant_ht;
+                $montantTTC = $facture->montant_ttc;
+                $tva = $facture->tva;
             }
 
-            $tva = 18;
-            $montantTTC = $montantHTTotal * 1.18;
 
+            // Met à jour la facture.
             $facture->update([
                 'client_nom' => $validated['client_nom'] ?? $facture->client_nom,
                 'client_prenom' => $validated['client_prenom'] ?? $facture->client_prenom,
@@ -214,77 +285,100 @@ class FactureController extends Controller
                 'date_paiement' => ($validated['statut_paiement'] ?? $facture->statut_paiement) === 'payé' ? now() : null,
             ]);
 
-            $facture->articles()->detach();
+            // Si de nouveaux articles ont été fournis, détache les anciens et attache les nouveaux.
+            if (!empty($validated['articles'])) {
+                $facture->articles()->detach(); // Détache tous les anciens articles.
+                foreach ($details as $d) {
+                    $facture->articles()->attach($d['article']->id, [
+                        'quantite' => $d['quantity'],
+                        'prix_unitaire' => $d['prix_unitaire'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $d['article']->decrement('quantite', $d['quantity']); // Décrémente le stock.
 
-            foreach ($details as $d) {
-                $facture->articles()->attach($d['article']->id, [
-                    'quantite' => $d['quantity'],
-                    'prix_unitaire' => $d['prix_unitaire'],
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
-                $d['article']->decrement('quantite', $d['quantity']);
-
-                if ($d['article']->fresh()->quantite < 5) {
-                    Notification::send(User::all(), new StockLowNotification($d['article'], 5));
+                    // Notifie si le stock est bas.
+                    if ($d['article']->fresh()->quantite < 5) {
+                         Notification::send(User::role('admin')->get(), new StockLowNotification($d['article'], 5));
+                    }
                 }
             }
 
-            DB::commit();
+            DB::commit(); // Valide la transaction.
             return redirect()->route('factures.index')->with('success', 'Facture mise à jour avec succès.');
 
         } catch (ModelNotFoundException $e) {
             DB::rollBack();
-            Log::error('Article non trouvé', ['error' => $e->getMessage()]);
-            return redirect()->back()->withErrors(['article_id' => 'Article introuvable !']);
+            Log::error('Article non trouvé lors de la mise à jour de la facture.', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['article_id' => 'Un article sélectionné est introuvable.'])->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Erreur mise à jour facture : ' . $e->getMessage());
-            return redirect()->back()->withErrors(['general' => 'Une erreur est survenue : ' . $e->getMessage()]);
+            Log::error('Erreur lors de la mise à jour de la facture : ' . $e->getMessage(), ['exception' => $e]);
+            return redirect()->back()->withErrors(['general' => 'Une erreur est survenue lors de la mise à jour : ' . $e->getMessage()])->withInput();
         }
     }
 
-    public function destroy(Facture $facture)
+    /**
+     * Supprime une facture spécifique de la base de données.
+     * Note : Ne réajuste pas les stocks des articles lors de la suppression.
+     *
+     * @param  \App\Models\Facture  $facture La facture à supprimer.
+     * @return \Illuminate\Http\RedirectResponse Redirige vers la liste des factures avec un message de succès.
+     */
+    public function destroy(Facture $facture): \Illuminate\Http\RedirectResponse
     {
-        $facture->delete();
+        // Implémentation de la logique pour réajuster les stocks si nécessaire avant suppression
+        // foreach ($facture->articles as $articlePivot) {
+        //     $articleModel = Article::find($articlePivot->id);
+        //     if ($articleModel) {
+        //         $articleModel->increment('quantite', $articlePivot->pivot->quantite);
+        //     }
+        // }
+        // $facture->articles()->detach(); // Optionnel si la suppression en cascade est configurée ou si on gère manuellement.
+
+        $facture->delete(); // Supprime la facture.
         return redirect()->route('factures.index')->with('success', 'Facture supprimée avec succès.');
     }
 
-    public function genererPdf(Facture $facture)
+    /**
+     * Génère et télécharge un PDF pour une facture spécifique.
+     *
+     * @param  \App\Models\Facture  $facture La facture pour laquelle générer le PDF.
+     * @return \Symfony\Component\HttpFoundation\Response Le PDF à télécharger.
+     */
+    public function genererPdf(Facture $facture): \Symfony\Component\HttpFoundation\Response
     {
-        // Recharge la facture pour avoir les dernières données
+        // Recharge la facture avec ses articles pour s'assurer d'avoir les dernières données.
         $facture = Facture::with('articles')->findOrFail($facture->id);
 
-        // Prepare details similar to how it might be done in the 'store' or 'show' method if needed by the PDF view
-        // For example, if 'details' array was used in the original PDF generation:
+        // Prépare les détails des articles de la facture pour la vue PDF.
+        // Ceci est similaire à ce qui pourrait être fait dans 'store' ou 'show' si la vue PDF en a besoin.
         $details = [];
-        $montantHTTotal = 0;
         foreach ($facture->articles as $articlePivot) {
-            // Assuming 'prix_unitaire' and 'quantite' are stored in the pivot table 'article_facture'
+            // Suppose que 'prix_unitaire' et 'quantite' sont stockés dans la table pivot 'article_facture'.
             $prixUnitaire = $articlePivot->pivot->prix_unitaire;
             $quantity = $articlePivot->pivot->quantite;
             $ligneHT = $prixUnitaire * $quantity;
 
             $details[] = [
-                'article' => $articlePivot, // The Article model itself
+                'article' => $articlePivot, // Le modèle Article lui-même.
                 'quantity' => $quantity,
                 'prix_unitaire' => $prixUnitaire,
                 'montant_ht' => $ligneHT,
             ];
-            $montantHTTotal += $ligneHT;
         }
 
-        // The PDF view might also expect calculated totals directly from the $facture model
-        // if they are stored on the factures table (e.g., $facture->montant_ht, $facture->montant_ttc)
-        // Adjust the data passed to the view based on what `factures.pdf.blade.php` expects.
+        // La vue PDF peut aussi s'attendre à des totaux calculés directement depuis le modèle $facture
+        // s'ils sont stockés dans la table des factures (ex: $facture->montant_ht, $facture->montant_ttc).
+        // Ajuster les données passées à la vue en fonction de ce que `factures.pdf.blade.php` attend.
 
         $pdf = Pdf::loadView('factures.pdf', [
             'facture' => $facture,
-            'details' => $details, // Pass this if your PDF view iterates over 'details'
-                                // If not, and it uses $facture->articles directly, ensure that relationship is correctly structured
+            'details' => $details, // Passer ceci si votre vue PDF itère sur 'details'.
+                                // Sinon, si elle utilise $facture->articles directement, s'assurer que cette relation est correctement structurée.
         ]);
 
+        // Télécharge le PDF avec un nom de fichier dynamique.
         return $pdf->download('Facture_' . ($facture->numero ? $facture->numero : $facture->id) . '.pdf');
     }
 }

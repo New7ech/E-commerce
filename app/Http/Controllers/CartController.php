@@ -6,46 +6,59 @@ use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
+/**
+ * Contrôleur pour la gestion du panier d'achats.
+ * Utilise la session pour stocker les articles du panier.
+ */
 class CartController extends Controller
 {
+    /**
+     * Constructeur du contrôleur.
+     * S'assure que la session PHP est démarrée, bien que Laravel gère généralement cela automatiquement
+     * via le middleware StartSession. Ce constructeur explicite peut être redondant.
+     */
     public function __construct()
     {
-        // Ensure session is started
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
+        // S'assurer que la session est démarrée.
+        // Note : Laravel démarre généralement la session via son middleware.
+        // Cette vérification manuelle est souvent inutile dans un contexte Laravel standard.
+        if (session_status() == PHP_SESSION_NONE && !app()->runningInConsole() && !app()->runningUnitTests()) {
+             session_start();
         }
     }
 
     /**
-     * Display the cart items.
+     * Affiche les articles présents dans le panier.
+     * Récupère les articles de la session, calcule le total et affiche la vue du panier.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View La vue du panier avec les articles et le prix total.
      */
-    public function index()
+    public function index(): \Illuminate\View\View
     {
-        $cart = Session::get('cart', []);
+        $cart = Session::get('cart', []); // Récupère le panier de la session, ou un tableau vide par défaut.
         $articlesInCart = [];
         $totalPrice = 0;
 
         if (!empty($cart)) {
-            $articleIds = array_keys($cart);
+            $articleIds = array_keys($cart); // Obtient les IDs des articles dans le panier.
+            // Récupère les informations des articles depuis la base de données.
             $articles = Article::whereIn('id', $articleIds)->get()->keyBy('id');
 
             foreach ($cart as $id => $item) {
                 if (isset($articles[$id])) {
                     $article = $articles[$id];
                     $quantity = $item['quantity'];
-                    $subtotal = $article->prix * $quantity;
+                    $subtotal = $article->prix * $quantity; // Calcule le sous-total pour cet article.
                     $articlesInCart[] = [
                         'id' => $article->id,
                         'name' => $article->name,
                         'prix' => $article->prix,
                         'quantity' => $quantity,
                         'subtotal' => $subtotal,
-                        // Add image_url if you have it in your Article model
-                        // 'image_url' => $article->image_url,
+                        // Ajouter 'image_path' si disponible dans le modèle Article et nécessaire pour la vue.
+                        // 'image_path' => $article->image_path,
                     ];
-                    $totalPrice += $subtotal;
+                    $totalPrice += $subtotal; // Ajoute au prix total du panier.
                 }
             }
         }
@@ -54,83 +67,87 @@ class CartController extends Controller
     }
 
     /**
-     * Add an article to the cart.
+     * Ajoute un article au panier ou augmente sa quantité si déjà présent.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Article  $article
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  \Illuminate\Http\Request  $request La requête HTTP, contenant potentiellement la quantité.
+     * @param  \App\Models\Article  $article L'article à ajouter au panier.
+     * @return \Illuminate\Http\RedirectResponse Redirige vers la page du panier avec un message de succès.
      */
-    public function add(Request $request, Article $article)
+    public function add(Request $request, Article $article): \Illuminate\Http\RedirectResponse
     {
-        $quantity = $request->input('quantity', 1);
-        $cart = Session::get('cart', []);
+        $quantity = $request->input('quantity', 1); // Quantité par défaut à 1 si non fournie.
+        $cart = Session::get('cart', []); // Récupère le panier actuel.
 
+        // Si l'article est déjà dans le panier, augmente la quantité.
         if (isset($cart[$article->id])) {
             $cart[$article->id]['quantity'] += $quantity;
         } else {
+            // Sinon, ajoute le nouvel article avec la quantité spécifiée.
             $cart[$article->id] = [
                 'quantity' => $quantity,
             ];
         }
 
-        Session::put('cart', $cart);
+        Session::put('cart', $cart); // Sauvegarde le panier mis à jour dans la session.
 
-        return redirect()->route('cart.index')->with('success', 'Article added to cart successfully!');
+        return redirect()->route('cart.index')->with('success', 'Article ajouté au panier avec succès !');
     }
 
     /**
-     * Update the quantity of an article in the cart.
+     * Met à jour la quantité d'un article dans le panier.
+     * Si la quantité est mise à 0 ou moins, l'article est retiré du panier.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Article  $article
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant la nouvelle quantité.
+     * @param  \App\Models\Article  $article L'article dont la quantité doit être mise à jour.
+     * @return \Illuminate\Http\RedirectResponse Redirige vers la page du panier avec un message de succès ou d'erreur.
      */
-    public function update(Request $request, Article $article)
+    public function update(Request $request, Article $article): \Illuminate\Http\RedirectResponse
     {
-        $quantity = $request->input('quantity');
+        $quantity = $request->input('quantity'); // Récupère la nouvelle quantité.
         $cart = Session::get('cart', []);
 
+        // Si l'article est dans le panier et la quantité est positive.
         if (isset($cart[$article->id]) && $quantity > 0) {
-            $cart[$article->id]['quantity'] = $quantity;
+            $cart[$article->id]['quantity'] = $quantity; // Met à jour la quantité.
             Session::put('cart', $cart);
-            return redirect()->route('cart.index')->with('success', 'Cart updated successfully!');
+            return redirect()->route('cart.index')->with('success', 'Panier mis à jour avec succès !');
         } elseif (isset($cart[$article->id]) && $quantity <= 0) {
-            // If quantity is 0 or less, remove the item
+            // Si la quantité est de 0 ou moins, retire l'article du panier.
             unset($cart[$article->id]);
             Session::put('cart', $cart);
-            return redirect()->route('cart.index')->with('success', 'Article removed from cart.');
+            return redirect()->route('cart.index')->with('success', 'Article retiré du panier.');
         }
 
-        return redirect()->route('cart.index')->with('error', 'Invalid quantity or item not in cart.');
+        return redirect()->route('cart.index')->with('error', 'Quantité invalide ou article non trouvé dans le panier.');
     }
 
     /**
-     * Remove an article from the cart.
+     * Retire un article spécifique du panier.
      *
-     * @param  \App\Models\Article  $article
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  \App\Models\Article  $article L'article à retirer.
+     * @return \Illuminate\Http\RedirectResponse Redirige vers la page du panier avec un message de succès ou d'erreur.
      */
-    public function remove(Article $article)
+    public function remove(Article $article): \Illuminate\Http\RedirectResponse
     {
         $cart = Session::get('cart', []);
 
         if (isset($cart[$article->id])) {
-            unset($cart[$article->id]);
+            unset($cart[$article->id]); // Retire l'article du tableau du panier.
             Session::put('cart', $cart);
-            return redirect()->route('cart.index')->with('success', 'Article removed from cart successfully!');
+            return redirect()->route('cart.index')->with('success', 'Article retiré du panier avec succès !');
         }
 
-        return redirect()->route('cart.index')->with('error', 'Article not found in cart.');
+        return redirect()->route('cart.index')->with('error', 'Article non trouvé dans le panier.');
     }
 
     /**
-     * Clear all items from the cart.
+     * Vide entièrement le panier.
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\RedirectResponse Redirige vers la page du panier avec un message de succès.
      */
-    public function clear()
+    public function clear(): \Illuminate\Http\RedirectResponse
     {
-        Session::forget('cart');
-        return redirect()->route('cart.index')->with('success', 'Cart cleared successfully!');
+        Session::forget('cart'); // Supprime toutes les données du panier de la session.
+        return redirect()->route('cart.index')->with('success', 'Panier vidé avec succès !');
     }
 }

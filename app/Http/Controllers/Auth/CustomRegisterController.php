@@ -10,53 +10,63 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\Rules\Password; // Import Password rule
+use Illuminate\Validation\Rules\Password; // Importation de la règle Password pour la validation.
 
+/**
+ * Contrôleur personnalisé pour gérer l'enregistrement de nouveaux utilisateurs.
+ */
 class CustomRegisterController extends Controller
 {
     /**
-     * Display the registration view.
+     * Affiche la vue du formulaire d'enregistrement personnalisé.
+     *
+     * @return \Illuminate\View\View La vue du formulaire d'enregistrement.
      */
     public function create(): View
     {
-        return view('auth.custom-register');
+        return view('auth.custom-register'); // Retourne la vue 'auth.custom-register'.
     }
 
     /**
-     * Handle an incoming registration request.
+     * Gère une requête d'enregistrement entrante.
+     * Valide les données de l'utilisateur, crée un nouvel utilisateur, lui assigne le rôle 'Client' (si trouvé),
+     * puis connecte l'utilisateur et le redirige vers la page d'accueil.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant les informations du nouvel utilisateur.
+     * @return \Illuminate\Http\RedirectResponse Redirige vers la page d'accueil après un enregistrement réussi ou retour au formulaire avec erreurs.
      */
     public function store(Request $request): RedirectResponse
     {
+        // Valide les données d'entrée.
         $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', Password::defaults(), 'confirmed'], // Use imported Password rule
+            'name' => ['required', 'string', 'max:255'], // Nom requis, chaîne, max 255 caractères.
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'], // E-mail requis, chaîne, format e-mail, max 255, unique dans la table users.
+            'password' => ['required', 'string', Password::defaults(), 'confirmed'], // Mot de passe requis, chaîne, utilise les règles par défaut de Laravel pour la complexité, et doit être confirmé.
         ]);
 
+        // Si la validation échoue, redirige vers la page d'enregistrement avec les erreurs et les données entrées.
         if ($validator->fails()) {
             return redirect()->route('custom.register')
                         ->withErrors($validator)
                         ->withInput();
         }
 
-        // Find the 'Client' role
-        // Assuming Role model uses Spatie's permission package or similar name field
+        // Recherche le rôle 'Client'.
+        // Suppose que le modèle Role utilise le package Spatie Permission ou un champ 'name' similaire.
         $clientRole = \App\Models\Role::where('name', 'Client')->first();
 
+        // Crée le nouvel utilisateur.
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role_id' => $clientRole ? $clientRole->id : null, // Assign role_id if Client role found
-            'created_by' => null, // For self-registration, created_by is null
-            // 'email_verified_at' => now(), // Optionally, verify email straight away
+            'password' => Hash::make($request->password), // Hash le mot de passe.
+            'role_id' => $clientRole ? $clientRole->id : null, // Assigne role_id si le rôle 'Client' est trouvé.
+            'created_by' => null, // Pour l'auto-enregistrement, created_by est null.
+            // 'email_verified_at' => now(), // Optionnellement, vérifier l'e-mail immédiatement.
         ]);
 
-        Auth::login($user);
+        Auth::login($user); // Connecte l'utilisateur nouvellement créé.
 
-        return redirect()->route('home'); // Redirect to home page after successful registration
+        return redirect()->route('home'); // Redirige vers la page d'accueil après un enregistrement réussi.
     }
 }
