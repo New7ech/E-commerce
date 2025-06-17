@@ -8,7 +8,7 @@
     <ul class="breadcrumbs">
         <li class="nav-home"><a href="#"><i class="icon-home"></i></a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
-        <li class="nav-item"><a href="{{ route('articles.index') }}">Articles</a></li>
+        <li class="nav-item"><a href="{{ route('admin.articles.index') }}">Articles</a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
         <li class="nav-item">Ajouter</li>
     </ul>
@@ -31,7 +31,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('articles.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.articles.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="form-group">
                         <label for="name">Nom de l'article</label>
@@ -103,7 +103,7 @@
 
                     <div class="card-action">
                         <button type="submit" class="btn btn-success">Enregistrer</button>
-                        <a href="{{ route('articles.index') }}" class="btn btn-danger">Annuler</a>
+                        <a href="{{ route('admin.articles.index') }}" class="btn btn-danger">Annuler</a>
                     </div>
                 </form>
             </div>
