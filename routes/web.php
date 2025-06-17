@@ -27,10 +27,13 @@ use Illuminate\Support\Facades\Route;
 
 
 
+<<<<<<< HEAD
 Route::get('/home', function () {
     return view('home');
 })->name('home');
 
+=======
+>>>>>>> 3f425e2c5bf71e7195350fb49e7ac12032322d78
 Route::get('/products', [ArticleController::class, 'productList'])->name('products.index');
 
 Route::get('/products/{id}', [ArticleController::class, 'productShow'])->name('products.show');
@@ -71,7 +74,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/orders', [ProfileController::class, 'orderHistory'])->name('profile.orders');
 });
 
-require __DIR__.'/auth.php';
+// require __DIR__.'/auth.php'; // Commented out to disable default Breeze/UI auth routes
 
 
 
@@ -84,8 +87,9 @@ Route::resource('fournisseurs', FournisseurController::class);
 Route::resource('emplacements',EmplacementController::class);
 Route::resource('articles', ArticleController::class);
 Route::resource('factures', FactureController::class);
-Route::resource('accueil', AccueilController::class);
-Route::get('/', [App\Http\Controllers\AccueilController::class, 'index'])->name('accueil');
+Route::resource('accueil', AccueilController::class); // This likely creates a GET '/' route already if 'index' is typical resource method
+// Ensure the primary GET / route is explicitly named 'home' and points to AccueilController@index
+Route::get('/', [App\Http\Controllers\AccueilController::class, 'index'])->name('home');
 
 Route::get('/factures/{facture}/pdf', [FactureController::class, 'genererPdf'])->name('factures.pdf');
 Route::get('/statistiques', [StatistiqueController::class, 'index'])->name('statistiques.index');
