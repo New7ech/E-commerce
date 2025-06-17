@@ -6,7 +6,7 @@
 <div class="page-header">
     <h3 class="fw-bold mb-3">Détails de l'Utilisateur</h3>
     <ul class="breadcrumbs">
-        <li class="nav-home"><a href="{{ route('welcome') }}"><i class="icon-home"></i></a></li>
+        <li class="nav-home"><a href="#"><i class="icon-home"></i></a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
         <li class="nav-item"><a href="{{ route('users.index') }}">Utilisateurs</a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
@@ -34,9 +34,9 @@
                 <div class="row">
                     <div class="col-md-3 text-center mb-3">
                         @if($user->photo)
-                            <img src="{{ asset('storage/' . $user->photo) }}" alt="Photo de profil de {{ $user->name }}" class="img-fluid img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                            <img src="{{ asset('storage/app/public/' . $user->photo) }}" alt="Photo de profil de {{ $user->name }}" class="img-fluid img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
                         @else
-                            <img src="{{ asset('assets/img/default-avatar.png') }}" alt="Avatar par défaut" class="img-fluid img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                            <img src="{{ asset('assets/img/kaiadmin/logocommerce.PNG') }}" alt="Avatar par défaut" class="img-fluid img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
                              {{-- Assuming default-avatar.png is in public/assets/img/ --}}
                         @endif
                     </div>

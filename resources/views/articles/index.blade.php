@@ -40,10 +40,10 @@
                         <tbody>
                             @forelse ($articles as $article)
                             <tr>
-                                <td>{{ $article->nom }}</td>
-                                <td>{{ $article->categorie->nom ?? 'N/A' }}</td>
+                                <td>{{ $article->name }}</td>
+                                <td>{{ $article->categorie->name ?? 'N/A' }}</td>
                                 <td>{{ number_format($article->prix, 2, ',', ' ') }} FCFA</td>
-                                <td>{{ $article->quantite_stock }}</td>
+                                <td>{{ $article->quantite }}</td>
                                 <td>
                                     <div class="form-button-action">
                                         <a href="{{ route('articles.show', $article->id) }}" data-bs-toggle="tooltip" title="Voir" class="btn btn-link btn-primary btn-lg">

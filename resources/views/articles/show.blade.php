@@ -6,7 +6,7 @@
 <div class="page-header">
     <h3 class="fw-bold mb-3">Détails de l'Article</h3>
     <ul class="breadcrumbs">
-        <li class="nav-home"><a href="{{ route('welcome') }}"><i class="icon-home"></i></a></li>
+        <li class="nav-home"><a href="#"><i class="icon-home"></i></a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
         <li class="nav-item"><a href="{{ route('articles.index') }}">Articles</a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
