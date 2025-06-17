@@ -27,16 +27,11 @@ use Illuminate\Support\Facades\Route;
 
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 Route::get('/home', function () {
     return view('home');
 })->name('home');
 
-=======
->>>>>>> 3f425e2c5bf71e7195350fb49e7ac12032322d78
-=======
->>>>>>> 3f425e2c5bf71e7195350fb49e7ac12032322d78
 Route::get('/products', [ArticleController::class, 'productList'])->name('products.index');
 
 Route::get('/products/{id}', [ArticleController::class, 'productShow'])->name('products.show');
