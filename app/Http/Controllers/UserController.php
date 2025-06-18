@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage; // Ajout pour la gestion du stockage des fichiers.
 use Spatie\Permission\Models\Role;
 
 /**
@@ -137,12 +138,13 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user): \Illuminate\Http\RedirectResponse
     {
-        // Valide les données, y compris le mot de passe optionnel.
+        // Valide les données, y compris le mot de passe optionnel et la photo.
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id, // Email unique, sauf pour cet utilisateur.
             'password' => 'nullable|min:8|confirmed', // Mot de passe optionnel, mais doit être confirmé s'il est fourni.
-            'roles' => 'nullable|array' // Pour la synchronisation des rôles Spatie.
+            'roles' => 'nullable|array', // Pour la synchronisation des rôles Spatie.
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048' // Validation pour la nouvelle photo.
         ]);
 
         // Récupère les données à mettre à jour.
@@ -153,6 +155,17 @@ class UserController extends Controller
             $data['password'] = Hash::make($request->password); // Crypte le nouveau mot de passe.
         }
 
+        // Gère le téléversement de la nouvelle photo.
+        if ($request->hasFile('photo')) {
+            // Supprime l'ancienne photo si elle existe.
+            if ($user->photo) {
+                Storage::disk('public')->delete($user->photo);
+            }
+            // Stocke la nouvelle photo.
+            $path = $request->file('photo')->store('images', 'public');
+            $data['photo'] = $path; // Ajoute le chemin de la nouvelle photo aux données à mettre à jour.
+        }
+
         // Met à jour l'utilisateur avec les données.
         $user->update($data);
 
@@ -160,7 +173,10 @@ class UserController extends Controller
         if ($request->has('roles')) {
             $user->syncRoles($request->roles);
         } else {
-            $user->syncRoles([]); // Si aucun rôle n'est envoyé, retire tous les rôles.
+            // Si aucun rôle n'est envoyé et que vous souhaitez retirer tous les rôles existants.
+            // Si vous souhaitez conserver les rôles existants en l'absence de 'roles' dans la requête,
+            // vous pouvez omettre ce bloc 'else'.
+            $user->syncRoles([]);
         }
 
 

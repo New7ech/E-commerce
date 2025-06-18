@@ -5,7 +5,7 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-3">
+    <form method="post" action="{{ route('profile.update') }}" class="mt-3" enctype="multipart/form-data">
         @csrf
         @method('patch')
 
@@ -42,6 +42,20 @@
                 </div>
             @endif
         </div>
+
+        <div class="form-group mt-3">
+            <label for="photo">{{ __('Profile Photo') }}</label>
+            <input id="photo" name="photo" type="file" class="form-control-file @error('photo') is-invalid @enderror">
+            @error('photo')
+                <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+        </div>
+        @if ($user->photo)
+            <div class="mt-2">
+                <p>{{ __('Current Photo:') }}</p>
+                <img src="{{ asset('storage/' . $user->photo) }}" alt="{{ __('Current Profile Photo') }}" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+            </div>
+        @endif
 
         <div class="d-flex align-items-center gap-4 mt-4">
             <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
