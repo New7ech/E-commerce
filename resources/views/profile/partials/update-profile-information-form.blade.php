@@ -1,10 +1,7 @@
 <section>
     {{-- Header removed as it's now in the parent card --}}
 
-    <form id="send-verification" method="post" action="{{ route('verification.send') }}">
-        @csrf
-    </form>
-
+    {{-- The main form for updating profile information --}}
     <form method="post" action="{{ route('profile.update') }}" class="mt-3" enctype="multipart/form-data">
         @csrf
         @method('patch')
@@ -24,23 +21,32 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
 
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div class="mt-2">
-                    <p class="text-sm text-muted">
-                        {{ __('Your email address is unverified.') }}
+            {{-- Start: Conditional Email Verification Section --}}
+            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail)
+                {{-- Hidden form for re-sending verification email --}}
+                {{-- This form is only defined if the user model uses email verification --}}
+                <form id="send-verification" method="post" action="{{ route('verification.send') }}" class="d-none">
+                    @csrf
+                </form>
 
-                        <button form="send-verification" class="btn btn-link p-0 text-sm text-primary">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
-
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 text-sm text-success">
-                            {{ __('A new verification link has been sent to your email address.') }}
+                @if (! $user->hasVerifiedEmail())
+                    <div class="mt-2">
+                        <p class="text-sm text-muted">
+                            {{ __('Your email address is unverified.') }}
+                            {{-- This button triggers the hidden form above --}}
+                            <button form="send-verification" class="btn btn-link p-0 text-sm text-primary">
+                                {{ __('Click here to re-send the verification email.') }}
+                            </button>
                         </p>
-                    @endif
-                </div>
+                        @if (session('status') === 'verification-link-sent')
+                            <p class="mt-2 text-sm text-success">
+                                {{ __('A new verification link has been sent to your email address.') }}
+                            </p>
+                        @endif
+                    </div>
+                @endif
             @endif
+            {{-- End: Conditional Email Verification Section --}}
         </div>
 
         <div class="form-group mt-3">
