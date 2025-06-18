@@ -17,6 +17,9 @@ use App\Http\Controllers\StatistiqueController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Auth\PasswordController; // Added import for PasswordController
 use Illuminate\Support\Facades\Route;
+use App\Models\Article;
+use App\Models\Categorie;
+use App\Models\User as UserModel; // Alias User model to avoid conflict with UserController
 
 
 
@@ -63,7 +66,27 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    $productCount = Article::count();
+    $categoryCount = Categorie::count();
+    $userCount = UserModel::count(); // Use the aliased UserModel
+
+    $recentlyUpdatedProducts = Article::with('categorie')
+                                    ->orderBy('updated_at', 'desc')
+                                    ->take(4)
+                                    ->get();
+
+    $newArrivals = Article::with('categorie')
+                            ->orderBy('created_at', 'desc')
+                            ->take(4)
+                            ->get();
+
+    return view('dashboard', compact(
+        'productCount',
+        'categoryCount',
+        'userCount',
+        'recentlyUpdatedProducts',
+        'newArrivals'
+    ));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
