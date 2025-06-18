@@ -71,9 +71,9 @@ class UserController extends Controller
 
         // Si une photo est téléversée, la sauvegarde.
         if ($request->hasFile('photo')) {
-            // Stocke dans 'storage/app/public/images' et récupère le chemin.
-            $path = $request->file('photo')->store('images', 'public');
-            $data['photo'] = $path; // Stocke le chemin relatif 'images/xxxxx.jpg'.
+            // Stocke dans 'storage/app/public/avatars' et récupère le chemin.
+            $path = $request->file('photo')->store('avatars', 'public');
+            $data['photo'] = $path; // Stocke le chemin relatif 'avatars/xxxxx.jpg'.
         }
 
         // Crée l'utilisateur.
@@ -162,7 +162,7 @@ class UserController extends Controller
                 Storage::disk('public')->delete($user->photo);
             }
             // Stocke la nouvelle photo.
-            $path = $request->file('photo')->store('images', 'public');
+            $path = $request->file('photo')->store('avatars', 'public');
             $data['photo'] = $path; // Ajoute le chemin de la nouvelle photo aux données à mettre à jour.
         }
 
