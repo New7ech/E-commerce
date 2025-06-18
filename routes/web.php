@@ -15,6 +15,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StatistiqueController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Auth\PasswordController; // Added import for PasswordController
 use Illuminate\Support\Facades\Route;
 
 
@@ -65,6 +66,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/profile/orders', [ProfileController::class, 'orderHistory'])->name('profile.orders');
+    Route::put('user/password', [PasswordController::class, 'update'])->name('password.update');
 });
 
 // require __DIR__.'/auth.php'; // Commented out to disable default Breeze/UI auth routes
