@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage; // Importation de la façade Storage.
 use Illuminate\View\View;
 
 /**
@@ -38,14 +39,29 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated()); // Remplit le modèle utilisateur avec les données validées.
+        $user = $request->user();
 
-        // Si l'adresse e-mail de l'utilisateur a été modifiée, marque l'e-mail comme non vérifié.
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // Gère le téléversement de la photo de profil.
+        if ($request->hasFile('photo')) {
+            // Supprime l'ancienne photo si elle existe.
+            if ($user->photo) {
+                Storage::disk('public')->delete($user->photo);
+            }
+            // Stocke la nouvelle photo dans 'public/images'.
+            $path = $request->file('photo')->store('images', 'public');
+            $user->photo = $path; // Met à jour l'attribut photo de l'utilisateur.
         }
 
-        $request->user()->save(); // Sauvegarde les modifications de l'utilisateur.
+        // Remplit le modèle utilisateur avec les données validées par ProfileUpdateRequest (name, email).
+        // La validation de la photo est dans ProfileUpdateRequest, mais le fichier lui-même est géré ci-dessus.
+        $user->fill($request->validated());
+
+        // Si l'adresse e-mail de l'utilisateur a été modifiée, marque l'e-mail comme non vérifié.
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save(); // Sauvegarde les modifications de l'utilisateur (y compris la nouvelle photo si présente).
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated'); // Redirige avec un statut de succès.
     }

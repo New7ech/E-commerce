@@ -34,7 +34,7 @@
                 <div class="row">
                     <div class="col-md-3 text-center mb-3">
                         @if($user->photo)
-                            <img src="{{ asset('storage/app/public/' . $user->photo) }}" alt="Photo de profil de {{ $user->name }}" class="img-fluid img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                            <img src="{{ asset('storage/' . $user->photo) }}" alt="Photo de profil de {{ $user->name }}" class="img-fluid img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
                         @else
                             <img src="{{ asset('assets/img/kaiadmin/logocommerce.PNG') }}" alt="Avatar par défaut" class="img-fluid img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
                              {{-- Assuming default-avatar.png is in public/assets/img/ --}}
