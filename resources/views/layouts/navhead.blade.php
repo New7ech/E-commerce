@@ -43,13 +43,14 @@
 
             @include('layouts.notification')
 
+            @auth
             <li class="nav-item topbar-user dropdown hidden-caret">
                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                     <div class="avatar-sm">
                         <img src="{{ Auth::user()->photo ? asset('storage/' . Auth::user()->photo) : asset('assets/img/kaiadmin/default-avatar.png') }}" alt="Image de Profil" class="avatar-img rounded-circle" />
                     </div>
                     <span class="profile-username">
-                        <span class="fw-bold">{{ Auth::user()->name ?? 'Utilisateur' }}</span>
+                        <span class="fw-bold">{{ Auth::user()->name }}</span>
                     </span>
                 </a>
                 <ul class="dropdown-menu dropdown-user animated fadeIn">
@@ -60,8 +61,8 @@
                                      <img src="{{ Auth::user()->photo ? asset('storage/' . Auth::user()->photo) : asset('assets/img/kaiadmin/default-avatar.png') }}" alt="Image de Profil" class="avatar-img rounded" />
                                 </div>
                                 <div class="u-text">
-                                    <h4>{{ Auth::user()->name ?? 'Utilisateur' }}</h4>
-                                    <p class="text-muted mb-1">{{ Auth::user()->email ?? '' }}</p>
+                                    <h4>{{ Auth::user()->name }}</h4>
+                                    <p class="text-muted mb-1">{{ Auth::user()->email }}</p>
                                     <a class="btn btn-xs btn-secondary btn-sm" href="{{ route('profile.edit') }}">Voir le Profil</a>
                                 </div>
                             </div>
@@ -85,6 +86,19 @@
                     </div>
                 </ul>
             </li>
+            @else
+            {{-- Liens Connexion/Inscription pour les utilisateurs non authentifiés --}}
+            <li class="nav-item dropdown hidden-caret">
+                <a class="nav-link" href="{{ route('custom.login') }}">
+                    <i class="fas fa-sign-in-alt me-2"></i> Connexion
+                </a>
+            </li>
+            <li class="nav-item dropdown hidden-caret">
+                <a class="nav-link" href="{{ route('custom.register') }}">
+                    <i class="fas fa-user-plus me-2"></i> Inscription
+                </a>
+            </li>
+            @endauth
         </ul>
     </div>
 </nav>

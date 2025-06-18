@@ -47,8 +47,8 @@ class ProfileController extends Controller
             if ($user->photo) {
                 Storage::disk('public')->delete($user->photo);
             }
-            // Stocke la nouvelle photo dans 'public/images'.
-            $path = $request->file('photo')->store('images', 'public');
+            // Stocke la nouvelle photo dans 'public/avatars'.
+            $path = $request->file('photo')->store('avatars', 'public');
             $user->photo = $path; // Met à jour l'attribut photo de l'utilisateur.
         }
 
