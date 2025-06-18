@@ -18,15 +18,12 @@ use App\Http\Requests\UpdateAccueilRequest;
 class AccueilController extends Controller
 {
     /**
-<<<<<<< HEAD
      * a listing of the resource.
-=======
      * Affiche la page d'accueil avec diverses statistiques sur les factures.
      * Calcule et transmet à la vue des données telles que le nombre total de factures,
      * le montant total, le nombre de factures payées/impayées, etc.
      *
      * @return \Illuminate\View\View
->>>>>>> c471c87851e54fe9354356552412880babb9fc1c
      */
     public function index()
     {
