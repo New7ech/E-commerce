@@ -3,6 +3,11 @@
 use App\Http\Controllers\AccueilController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\Auth\CustomForgotPasswordController;
+use App\Http\Controllers\Auth\CustomLoginController;
+use App\Http\Controllers\Auth\CustomRegisterController;
+use App\Http\Controllers\Auth\CustomResetPasswordController;
+use App\Http\Controllers\Auth\PasswordController; // Added import for PasswordController
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategorieController;
 use App\Http\Controllers\CheckoutController;
@@ -15,11 +20,16 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StatistiqueController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\Auth\PasswordController; // Added import for PasswordController
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\WishlistController;
 use App\Models\Article;
 use App\Models\Categorie;
 use App\Models\User as UserModel; // Alias User model to avoid conflict with UserController
+use Illuminate\Support\Facades\Route;
+
+
+
+
+
 
 
 
@@ -125,34 +135,34 @@ Route::post('/notifications/mark-all-as-read', [NotificationController::class, '
 
 // Wishlist Routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('/wishlist', [App\Http\Controllers\WishlistController::class, 'index'])->name('wishlist.index');
-    Route::post('/wishlist/add/{article}', [App\Http\Controllers\WishlistController::class, 'add'])->name('wishlist.add');
-    Route::delete('/wishlist/remove/{article}', [App\Http\Controllers\WishlistController::class, 'remove'])->name('wishlist.remove');
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/add/{article}', [WishlistController::class, 'add'])->name('wishlist.add');
+    Route::delete('/wishlist/remove/{article}', [WishlistController::class, 'remove'])->name('wishlist.remove');
 });
 
 // Custom Authentication Routes for Guests
 Route::middleware('guest')->group(function () {
-    Route::get('/custom-register', [App\Http\Controllers\Auth\CustomRegisterController::class, 'create'])->name('custom.register');
-    Route::post('/custom-register', [App\Http\Controllers\Auth\CustomRegisterController::class, 'store']);
+    Route::get('/custom-register', [CustomRegisterController::class, 'create'])->name('custom.register');
+    Route::post('/custom-register', [CustomRegisterController::class, 'store']);
 
     // Custom Login Routes
-    Route::get('/custom-login', [App\Http\Controllers\Auth\CustomLoginController::class, 'create'])->name('custom.login');
-    Route::post('/custom-login', [App\Http\Controllers\Auth\CustomLoginController::class, 'store']);
+    Route::get('/custom-login', [CustomLoginController::class, 'create'])->name('custom.login');
+    Route::post('/custom-login', [CustomLoginController::class, 'store']);
     // Add a route named 'login' pointing to the custom login controller's create method
     // This is to ensure Laravel's default Authenticate middleware redirects here if app/Http/Middleware/Authenticate.php is missing
-    Route::get('/login', [App\Http\Controllers\Auth\CustomLoginController::class, 'create'])->name('login');
+    Route::get('/login', [CustomLoginController::class, 'create'])->name('login');
 
 
     // Custom Password Reset Link Request Routes
-    Route::get('/custom-forgot-password', [App\Http\Controllers\Auth\CustomForgotPasswordController::class, 'create'])->name('custom.password.request');
-    Route::post('/custom-forgot-password', [App\Http\Controllers\Auth\CustomForgotPasswordController::class, 'store'])->name('custom.password.email');
+    Route::get('/custom-forgot-password', [CustomForgotPasswordController::class, 'create'])->name('custom.password.request');
+    Route::post('/custom-forgot-password', [CustomForgotPasswordController::class, 'store'])->name('custom.password.email');
 
     // Custom Password Reset Routes
-    Route::get('/custom-reset-password/{token}', [App\Http\Controllers\Auth\CustomResetPasswordController::class, 'create'])->name('custom.password.reset');
-    Route::post('/custom-reset-password', [App\Http\Controllers\Auth\CustomResetPasswordController::class, 'store'])->name('custom.password.update.action');
+    Route::get('/custom-reset-password/{token}', [CustomResetPasswordController::class, 'create'])->name('custom.password.reset');
+    Route::post('/custom-reset-password', [CustomResetPasswordController::class, 'store'])->name('custom.password.update.action');
 });
 
 // Custom Authenticated Routes (e.g., Logout)
 Route::middleware('auth')->group(function () {
-    Route::post('/custom-logout', [App\Http\Controllers\Auth\CustomLoginController::class, 'destroy'])->name('custom.logout');
+    Route::post('/custom-logout', [CustomLoginController::class, 'destroy'])->name('custom.logout');
 });
