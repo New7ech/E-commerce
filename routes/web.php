@@ -62,8 +62,7 @@ Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.in
 Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process'); // Middleware removed for guest checkout
 
 // Admin Routes for Order Management
-// Temporarily removing 'admin' middleware for testing due to BindingResolutionException
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
@@ -73,6 +72,19 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Public show route is /products/{id}, admin can use edit or a dedicated admin show if created
     // If ArticleController@show is used by admin, it might need adjustment or be fine.
     // For now, let's assume `except(['show'])` is a safe bet to avoid conflict with public productShow
+
+    // Moved resource routes
+    Route::resource('users', UserController::class);
+    Route::resource('roles', RoleController::class);
+    Route::resource('permissions', PermissionController::class);
+    Route::resource('categories', CategorieController::class);
+    Route::resource('fournisseurs', FournisseurController::class);
+    Route::resource('emplacements', EmplacementController::class);
+    Route::resource('factures', FactureController::class); // This will also name factura.show, edit, update, destroy to admin.factures.*
+
+    // Moved individual routes
+    Route::get('/factures/{facture}/pdf', [FactureController::class, 'genererPdf'])->name('factures.pdf');
+    Route::get('/statistiques', [StatistiqueController::class, 'index'])->name('statistiques.index');
 });
 
 Route::get('/dashboard', function () {
@@ -110,6 +122,10 @@ Route::middleware('auth')->group(function () {
 // require __DIR__.'/auth.php'; // Commented out to disable default Breeze/UI auth routes
 
 
+// `accueil` resource route remains public as its index serves the homepage.
+// Other methods (create, edit, etc.) if they exist and are admin-only would need separate admin routes or controller logic.
+Route::resource('accueil', AccueilController::class);
+
 
 //la gestion des utilisateurs
 Route::resource('users', UserController::class);
@@ -121,11 +137,9 @@ Route::resource('fournisseurs', FournisseurController::class);
 Route::resource('emplacements',EmplacementController::class);
 Route::resource('factures', FactureController::class);
 Route::resource('accueil', AccueilController::class); // This likely creates a GET '/' route already if 'index' is typical resource method
+
 // Ensure the primary GET / route is explicitly named 'home' and points to AccueilController@index
 Route::get('/', [App\Http\Controllers\AccueilController::class, 'index'])->name('home');
-
-Route::get('/factures/{facture}/pdf', [FactureController::class, 'genererPdf'])->name('factures.pdf');
-Route::get('/statistiques', [StatistiqueController::class, 'index'])->name('statistiques.index');
 
 // Notification routes
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
