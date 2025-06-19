@@ -22,24 +22,15 @@
             <h4 class="text-section">Menu Principal</h4>
           </li>
 
-<<<<<<< HEAD
+
             @hasrole('admin')
             <li class="nav-item">
                 <a data-bs-toggle="collapse" href="#demande">
                     <i class="fas fa-plus"></i>
                 <p>Catalogue & Article</p>
                 <span class="caret"></span>
-=======
-            {{-- @if (auth()->user()->hasRole('compagnie')) --}}
-
-              {{-- @elseif (auth()->user()->hasRole('admin')) --}}
-                <li class="nav-item">
-                    <a data-bs-toggle="collapse" href="#demande">
-                        <i class="fas fa-plus"></i>
-                    <p>Catalogue & Article</p>
-                    <span class="caret"></span>
-                    </a>
-                    <div class="collapse" id="demande">
+            </a>
+            <div class="collapse" id="demande">
                     <ul class="nav nav-collapse">
                         <li>
                             <a href="{{ route('articles.create') }}">
@@ -147,7 +138,6 @@
                 <a href="{{ route('statistiques.index') }}">
                   <i class="fas fa-chart-line"></i>
                     <p>Statistiques</p>
->>>>>>> main
                 </a>
                 <div class="collapse" id="demande">
                 <ul class="nav nav-collapse">
