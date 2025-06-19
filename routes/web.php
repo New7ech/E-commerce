@@ -122,11 +122,10 @@ Route::middleware('auth')->group(function () {
 // require __DIR__.'/auth.php'; // Commented out to disable default Breeze/UI auth routes
 
 
-<<<<<<< HEAD
 // `accueil` resource route remains public as its index serves the homepage.
 // Other methods (create, edit, etc.) if they exist and are admin-only would need separate admin routes or controller logic.
 Route::resource('accueil', AccueilController::class);
-=======
+
 
 //la gestion des utilisateurs
 Route::resource('users', UserController::class);
@@ -138,7 +137,7 @@ Route::resource('fournisseurs', FournisseurController::class);
 Route::resource('emplacements',EmplacementController::class);
 Route::resource('factures', FactureController::class);
 Route::resource('accueil', AccueilController::class); // This likely creates a GET '/' route already if 'index' is typical resource method
->>>>>>> main
+
 // Ensure the primary GET / route is explicitly named 'home' and points to AccueilController@index
 Route::get('/', [App\Http\Controllers\AccueilController::class, 'index'])->name('home');
 
