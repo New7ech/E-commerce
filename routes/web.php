@@ -37,7 +37,7 @@ Route::get('/products/{id}', [ArticleController::class, 'productShow'])->name('p
 
 // Cart Routes
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::post('/cart/add/{article}', [CartController::class, 'add'])->name('cart.add');
+// Route::post('/cart/add/{article}', [CartController::class, 'add'])->name('cart.add'); // Moved to auth group
 Route::patch('/cart/update/{article}', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cart/remove/{article}', [CartController::class, 'remove'])->name('cart.remove');
 Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
@@ -119,11 +119,13 @@ Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 
 Route::get('/notifications/{id}', [NotificationController::class, 'show'])->name('notifications.show');
 Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
 
-// Wishlist Routes
+// Wishlist Routes / Add to Cart (Authenticated)
 Route::middleware(['auth'])->group(function () {
     Route::get('/wishlist', [App\Http\Controllers\WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/add/{article}', [App\Http\Controllers\WishlistController::class, 'add'])->name('wishlist.add');
     Route::delete('/wishlist/remove/{article}', [App\Http\Controllers\WishlistController::class, 'remove'])->name('wishlist.remove');
+
+    Route::post('/cart/add/{article}', [CartController::class, 'add'])->name('cart.add'); // Moved here
 });
 
 // Custom Authentication Routes for Guests
