@@ -32,7 +32,11 @@
 <body>
 	<div class="wrapper">
 		<!-- Sidebar -->
-		@include('layouts.sidebar')
+		@auth
+			@hasrole('admin')
+				@include('layouts.sidebar')
+			@endhasrole
+		@endauth
 		<!-- End Sidebar -->
 
 		<div class="main-panel">
