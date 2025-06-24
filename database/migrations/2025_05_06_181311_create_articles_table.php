@@ -15,8 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
+            $table->string('short_description')->nullable()->after('description');
             $table->decimal('prix', 8, 2);
-            $table->integer('quantite')->default(0);
+            $table->integer('quantite')->default(0); // Sera renommé en 'stock' ou géré séparément
+            $table->integer('stock')->default(0)->after('quantite');
+            $table->string('image_url')->nullable()->after('stock'); // Ajout de image_url
             $table->foreignId('category_id')->nullable()->constrained('categories');
             $table->foreignId('fournisseur_id')->nullable()->constrained('fournisseurs');
             $table->foreignId('emplacement_id')->nullable()->constrained('emplacements');

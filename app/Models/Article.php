@@ -67,11 +67,14 @@ class Article extends Model
         'description', // Description détaillée de l'article
         'prix', // Prix unitaire de l'article
         'quantite', // Quantité actuelle en stock
+        'stock', // Stock disponible
+        'short_description', // Description courte pour les cartes produit
+        'image_url', // URL de l'image du produit
         'category_id', // Clé étrangère pour la catégorie
         'fournisseur_id', // Clé étrangère pour le fournisseur
         'emplacement_id', // Clé étrangère pour l'emplacement de stockage
         'created_by', // ID de l'utilisateur qui a ajouté l'article
-        'image_path' // Chemin vers l'image de l'article
+        'image_path' // Chemin vers l'image de l'article (peut être redondant avec image_url, à vérifier)
     ];
 
     /**
