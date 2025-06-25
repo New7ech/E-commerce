@@ -120,9 +120,13 @@ Route::middleware('auth')->group(function () {
 
 // `accueil` resource route remains public as its index serves the homepage.
 // Other methods (create, edit, etc.) if they exist and are admin-only would need separate admin routes or controller logic.
-Route::resource('accueil', AccueilController::class);
+// Route::resource('accueil', AccueilController::class); // Commenting out if new welcome page replaces this
 // Ensure the primary GET / route is explicitly named 'home' and points to AccueilController@index
-Route::get('/', [App\Http\Controllers\AccueilController::class, 'index'])->name('home');
+// Route::get('/', [App\Http\Controllers\AccueilController::class, 'index'])->name('home'); // Commenting out old home route
+
+// Nouvelle route pour la page d'accueil utilisant ArticleController@welcome
+Route::get('/', [ArticleController::class, 'welcome'])->name('homepage');
+
 
 // Notification routes
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
