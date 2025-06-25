@@ -13,35 +13,43 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Créer un utilisateur admin/test s'il n'existe pas
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            // 'password' => bcrypt('password'), // Assurez-vous que UserFactory gère le hachage
-            // 'is_admin' => true, // Si vous avez un champ pour admin
+        // Conserver la création d'utilisateurs existante si elle est pertinente
+        // User::factory()->create([
+        //     'name' => 'Admin User',
+        //     'email' => 'admin@example.com',
+        // ]);
+        // User::factory(5)->create();
+
+        // Appeler les nouveaux seeders pour les catégories et articles
+        $this->call([
+            CategorySeeder::class, // Pour les catégories Électronique, Mode, Agroalimentaire
+            ArticleSeeder::class,  // Pour les 20 articles fictifs
         ]);
-        User::factory(5)->create(); // Créer 5 utilisateurs aléatoires
 
-        // Créer des catégories
-        $categories = \App\Models\Categorie::factory(8)->create();
+        // Vous pouvez commenter ou supprimer les anciennes logiques de seeding si elles ne sont plus nécessaires
+        // ou si elles entrent en conflit avec les nouvelles.
+        // Par exemple, la création de catégories et articles ci-dessous est maintenant gérée par les nouveaux seeders.
 
-        // Créer des fournisseurs (si nécessaire pour ArticleFactory)
-        \App\Models\Fournisseur::factory(5)->create();
+        // // Créer des catégories
+        // $categories = \App\Models\Categorie::factory(8)->create();
 
-        // Créer des emplacements (si nécessaire pour ArticleFactory)
-        \App\Models\Emplacement::factory(3)->create();
+        // // Créer des fournisseurs (si nécessaire pour ArticleFactory)
+        // \App\Models\Fournisseur::factory(5)->create();
 
-        // Créer des articles et les lier à des catégories existantes
-        \App\Models\Article::factory(50)->make()->each(function ($article) use ($categories) {
-            $article->category_id = $categories->random()->id;
-            // Assigner un utilisateur existant aléatoirement comme créateur
-            $article->created_by = User::inRandomOrder()->first()->id;
-            // Assigner un fournisseur et un emplacement existants aléatoirement
-            $article->fournisseur_id = \App\Models\Fournisseur::inRandomOrder()->first()->id;
-            $article->emplacement_id = \App\Models\Emplacement::inRandomOrder()->first()->id;
-            $article->save();
-        });
+        // // Créer des emplacements (si nécessaire pour ArticleFactory)
+        // \App\Models\Emplacement::factory(3)->create();
 
-        $this->command->info('Database seeded with sample users, categories, and articles!');
+        // // Créer des articles et les lier à des catégories existantes
+        // \App\Models\Article::factory(50)->make()->each(function ($article) use ($categories) {
+        //     $article->category_id = $categories->random()->id;
+        //     // Assigner un utilisateur existant aléatoirement comme créateur
+        //     $article->created_by = User::inRandomOrder()->first()->id;
+        //     // Assigner un fournisseur et un emplacement existants aléatoirement
+        //     $article->fournisseur_id = \App\Models\Fournisseur::inRandomOrder()->first()->id;
+        //     $article->emplacement_id = \App\Models\Emplacement::inRandomOrder()->first()->id;
+        //     $article->save();
+        // });
+
+        $this->command->info('Database seeded with specific categories and articles for the new homepage!');
     }
 }
