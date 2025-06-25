@@ -147,9 +147,11 @@
             <!-- Menu catégories -->
             <nav class="mt-3 border-t border-gray-200 pt-3">
                 <ul class="flex flex-wrap justify-center md:justify-start space-x-4 md:space-x-6">
-                    @if(isset($categories))
+                    @if(isset($categories) && $categories->count() > 0)
                         @foreach($categories as $category)
-                            <li><a href="{{ route('public.categories.show', $category) }}" class="text-gray-700 hover:text-primary-orange font-semibold" data-testid="category-link-{{ $category->slug }}">{{ $category->name }}</a></li>
+                            @if($category && !empty($category->slug)) {{-- Vérification supplémentaire --}}
+                                <li><a href="{{ route('public.categories.show', $category) }}" class="text-gray-700 hover:text-primary-orange font-semibold" data-testid="category-link-{{ $category->slug }}">{{ $category->name }}</a></li>
+                            @endif
                         @endforeach
                     @endif
                      <li><a href="{{ route('static.promotions') }}" class="text-gray-700 hover:text-primary-orange font-semibold" data-testid="promotions-link">Promotions</a></li>
