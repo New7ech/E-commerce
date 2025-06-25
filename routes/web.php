@@ -57,7 +57,7 @@ Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.in
 Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process'); // Middleware removed for guest checkout
 
 // Admin Routes for Order Management
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
@@ -71,6 +71,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Moved resource routes
     Route::resource('users', UserController::class);
     Route::resource('roles', RoleController::class);
+    Route::resource('articles', ArticleController::class);
     Route::resource('permissions', PermissionController::class);
     Route::resource('categories', CategorieController::class);
     Route::resource('fournisseurs', FournisseurController::class);

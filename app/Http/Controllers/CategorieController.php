@@ -112,17 +112,17 @@ class CategorieController extends Controller
      * @param  \App\Models\Categorie  $categorie La catégorie à supprimer.
      * @return \Illuminate\Http\RedirectResponse Redirige vers la liste des catégories avec un message de succès ou d'erreur.
      */
-    public function destroy(Categorie $categorie): \Illuminate\Http\RedirectResponse
+    public function destroy($id): \Illuminate\Http\RedirectResponse
     {
-        // Vérifie si la catégorie est associée à des articles.
-        if ($categorie->articles()->count() > 0) {
+        $categorie = Categorie::findOrFail($id);
+
+        try {
+            $categorie->delete();
             return redirect()->route('categories.index')
-                ->with('error', 'Impossible de supprimer la catégorie car elle est associée à des articles.');
+                ->with('success', 'Catégorie supprimée avec succès.');
+        } catch (\Exception $e) {
+            return redirect()->route('categories.index')
+                ->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
         }
-
-        $categorie->delete(); // Supprime la catégorie.
-
-        return redirect()->route('categories.index')
-            ->with('success', 'Catégorie supprimée avec succès.');
     }
 }
