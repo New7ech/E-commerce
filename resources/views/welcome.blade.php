@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
@@ -218,12 +218,12 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 @forelse ($articles as $article)
                 <div class="bg-white rounded-lg shadow-md overflow-hidden hover-scale product-card" data-product-id="{{ $article->id }}" data-testid="product-card-{{ $article->id }}">
-                    <a href="#"> <!-- Remplacez # par la route du produit: {{ route('products.show', $article->slug) }} -->
+                    <a href="{{ route('products.show', ['id' => $article->id]) }}">
                         <img src="{{ $article->image_url ?? 'https://via.placeholder.com/300x200?text=Produit' }}" alt="{{ $article->title }}" class="w-full h-48 object-cover">
                     </a>
                     <div class="p-4">
                         <h3 class="text-lg font-semibold text-gray-800 mb-1 truncate" title="{{ $article->title }}">
-                            <a href="#">{{ $article->title }}</a>
+                            <a href="{{ route('products.show', ['id' => $article->id]) }}">{{ $article->title }}</a>
                         </h3>
                         <p class="text-sm text-gray-500 mb-2">{{ $article->category->name ?? 'Non catégorisé' }}</p>
                         <div class="flex items-baseline mb-2">
