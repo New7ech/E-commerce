@@ -218,12 +218,20 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 @forelse ($articles as $article)
                 <div class="bg-white rounded-lg shadow-md overflow-hidden hover-scale product-card" data-product-id="{{ $article->id }}" data-testid="product-card-{{ $article->id }}">
+<<<<<<< HEAD
                     <a href="{{ route('products.show', ['id' => $article->id]) }}">
+=======
+                    <a href="{{ route('products.show', $article) }}">
+>>>>>>> 928e92291234310a6adf47959bc48c3943d5e221
                         <img src="{{ $article->image_url ?? 'https://via.placeholder.com/300x200?text=Produit' }}" alt="{{ $article->title }}" class="w-full h-48 object-cover">
                     </a>
                     <div class="p-4">
                         <h3 class="text-lg font-semibold text-gray-800 mb-1 truncate" title="{{ $article->title }}">
+<<<<<<< HEAD
                             <a href="{{ route('products.show', ['id' => $article->id]) }}">{{ $article->title }}</a>
+=======
+                            <a href="{{ route('products.show', $article) }}">{{ $article->title }}</a>
+>>>>>>> 928e92291234310a6adf47959bc48c3943d5e221
                         </h3>
                         <p class="text-sm text-gray-500 mb-2">{{ $article->category->name ?? 'Non catégorisé' }}</p>
                         <div class="flex items-baseline mb-2">
@@ -569,9 +577,13 @@
         if (searchInput && suggestionsContainer) {
             // Exemple de données de suggestion (à remplacer par une vraie source)
             const allProducts = [
-                @foreach($articles as $article) "{{ $article->title }}", @endforeach
-                @foreach($categories as $category) "{{ $category->name }}", @endforeach
-            ];
+                @if(isset($articles) && $articles->count() > 0)
+                    @foreach($articles as $article) "{{ Str::limit(addslashes($article->title), 50) }}", @endforeach
+                @endif
+                @if(isset($categories) && $categories->count() > 0)
+                    @foreach($categories as $category) "{{ Str::limit(addslashes($category->name), 50) }}", @endforeach
+                @endif
+            ].filter(Boolean); // Filter out potential empty strings if collections are empty
 
             searchInput.addEventListener('input', function() {
                 const query = this.value.toLowerCase();
@@ -602,7 +614,40 @@
             });
         }
 
-        console.log("Scripts JS chargés et optimisés.");
+        // Gestionnaire de clic pour les boutons "Ajouter au panier"
+        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+        addToCartButtons.forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault(); // Empêche le comportement par défaut si c'est un lien <a> ou un submit
+                const productId = this.closest('.product-card').dataset.productId;
+                alert(`Bouton "Ajouter au panier" cliqué pour le produit ID: ${productId}. Logique d'ajout à implémenter.`);
+                // Ici, vous ajouteriez la logique pour ajouter au panier (ex: appel AJAX)
+                // Exemple: fetch(`/cart/add/${productId}`, { method: 'POST', headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'} })
+                //    .then(response => response.json())
+                //    .then(data => console.log(data))
+                //    .catch(error => console.error('Error:', error));
+            });
+        });
+
+        // Placeholder pour les filtres de produits (nécessite une logique JS plus avancée)
+        const sortFilter = document.querySelector('[data-testid="filter-sort"]');
+        const categoryFilter = document.querySelector('[data-testid="filter-category"]');
+
+        if (sortFilter) {
+            sortFilter.addEventListener('change', function() {
+                alert(`Filtre de tri changé à: ${this.value}. Logique de filtrage à implémenter.`);
+                // Recharger la page avec les paramètres de filtre ou utiliser AJAX
+            });
+        }
+
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', function() {
+                alert(`Filtre de catégorie changé à: ${this.value}. Logique de filtrage à implémenter.`);
+                // Recharger la page avec les paramètres de filtre ou utiliser AJAX
+            });
+        }
+
+        console.log("Scripts JS chargés et optimisés. Logique de base pour boutons ajoutée.");
         // Taille totale du script estimée : < 10KB (hors Tailwind)
     </script>
 
