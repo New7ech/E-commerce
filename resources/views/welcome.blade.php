@@ -106,7 +106,14 @@
 
                 <!-- Barre de recherche -->
                 <div class="w-full md:w-1/2 lg:w-1/3 mb-3 md:mb-0 relative">
-                    <input type="text" placeholder="Rechercher un produit, une marque ou une catégorie..."
+                    <form class="form-inline w-100" method="GET" action="{{ route('products.index') }}">
+                        <div class="input-group w-100">
+                            <input type="text" name="search" class="form-control" placeholder="Rechercher des produits..." aria-label="Rechercher des produits">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-orange text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400"
                            data-testid="search-bar">
                     <!-- Suggestions dynamiques (à implémenter avec JS) -->
