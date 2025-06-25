@@ -216,9 +216,9 @@
                                 <li><a class="dropdown-item" href="#">Mes commandes</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form method="POST" action="{{ route('logout') }}">
+                                    <form method="POST" action="{{ route('custom.logout') }}">
                                         @csrf
-                                        <a class="dropdown-item" href="{{ route('logout') }}"
+                                        <a class="dropdown-item" href="{{ route('custom.logout') }}"
                                            onclick="event.preventDefault(); this.closest('form').submit();">
                                             Déconnexion
                                         </a>
