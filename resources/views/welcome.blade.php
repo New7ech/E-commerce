@@ -218,20 +218,12 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 @forelse ($articles as $article)
                 <div class="bg-white rounded-lg shadow-md overflow-hidden hover-scale product-card" data-product-id="{{ $article->id }}" data-testid="product-card-{{ $article->id }}">
-<<<<<<< HEAD
-                    <a href="{{ route('products.show', ['id' => $article->id]) }}">
-=======
                     <a href="{{ route('products.show', $article) }}">
->>>>>>> 928e92291234310a6adf47959bc48c3943d5e221
                         <img src="{{ $article->image_url ?? 'https://via.placeholder.com/300x200?text=Produit' }}" alt="{{ $article->title }}" class="w-full h-48 object-cover">
                     </a>
                     <div class="p-4">
                         <h3 class="text-lg font-semibold text-gray-800 mb-1 truncate" title="{{ $article->title }}">
-<<<<<<< HEAD
-                            <a href="{{ route('products.show', ['id' => $article->id]) }}">{{ $article->title }}</a>
-=======
                             <a href="{{ route('products.show', $article) }}">{{ $article->title }}</a>
->>>>>>> 928e92291234310a6adf47959bc48c3943d5e221
                         </h3>
                         <p class="text-sm text-gray-500 mb-2">{{ $article->category->name ?? 'Non catégorisé' }}</p>
                         <div class="flex items-baseline mb-2">
