@@ -125,4 +125,26 @@ class CategorieController extends Controller
                 ->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
         }
     }
+
+    /**
+     * Affiche les produits d'une catégorie spécifique pour le public.
+     *
+     * @param  \App\Models\Categorie  $category La catégorie à afficher.
+     * @return \Illuminate\View\View
+     */
+    public function showPublic(Categorie $category)
+    {
+        // Charger les articles de la catégorie, paginés
+        $articles = $category->articles()->paginate(12); // Ou Article::where('category_id', $category->id)->paginate(12);
+        $categories = Categorie::all(); // Pour le menu des catégories
+
+        // Vous aurez besoin d'une vue pour afficher cela, par exemple 'categories.public-show'
+        // ou une vue plus générique 'products.index' qui peut filtrer par catégorie.
+        // Pour l'instant, je vais supposer une vue 'products.index' qui peut gérer cela.
+        // ou créer une nouvelle vue 'categories.show-public'
+
+        // Créez une vue resources/views/categories/show-public.blade.php
+        // ou adaptez une vue existante pour lister les produits.
+        return view('categories.show-public', compact('category', 'articles', 'categories'));
+    }
 }

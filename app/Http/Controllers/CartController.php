@@ -73,10 +73,31 @@ class CartController extends Controller
      * @param  \App\Models\Article  $article L'article à ajouter au panier.
      * @return \Illuminate\Http\RedirectResponse Redirige vers la page du panier avec un message de succès.
      */
-    public function add(Request $request, Article $article): \Illuminate\Http\RedirectResponse
+    public function add(Request $request, Article $article) // Return type hint removed for dual response type
     {
         $quantity = $request->input('quantity', 1); // Quantité par défaut à 1 si non fournie.
         $cart = Session::get('cart', []); // Récupère le panier actuel.
+
+        // Vérifier le stock de l'article avant d'ajouter
+        if ($article->stock < $quantity) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Stock insuffisant pour cet article.'], 400);
+            }
+            return redirect()->back()->with('error', 'Stock insuffisant pour cet article.');
+        }
+
+        $currentQuantityInCart = 0;
+        if (isset($cart[$article->id])) {
+            $currentQuantityInCart = $cart[$article->id]['quantity'];
+        }
+
+        if ($article->stock < ($currentQuantityInCart + $quantity)) {
+             if ($request->expectsJson()) {
+                return response()->json(['error' => 'Quantité demandée dépasse le stock disponible, en tenant compte de votre panier actuel.'], 400);
+            }
+            return redirect()->back()->with('error', 'Quantité demandée dépasse le stock disponible, en tenant compte de votre panier actuel.');
+        }
+
 
         // Si l'article est déjà dans le panier, augmente la quantité.
         if (isset($cart[$article->id])) {
@@ -85,10 +106,29 @@ class CartController extends Controller
             // Sinon, ajoute le nouvel article avec la quantité spécifiée.
             $cart[$article->id] = [
                 'quantity' => $quantity,
+                // Vous pouvez stocker plus d'infos si besoin, mais attention à la taille de la session
+                // 'name' => $article->title,
+                // 'price' => $article->promo_price ?? $article->price,
+                // 'image' => $article->image_url
             ];
         }
 
         Session::put('cart', $cart); // Sauvegarde le panier mis à jour dans la session.
+
+        // Mettre à jour le stock de l'article (si vous gérez le stock de cette manière)
+        // $article->decrement('stock', $quantity); // Attention: à faire seulement à la validation de commande normalement
+
+        $totalItemsInCart = 0;
+        foreach ($cart as $item) {
+            $totalItemsInCart += $item['quantity'];
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => 'Article ajouté au panier avec succès !',
+                'cartTotalItems' => $totalItemsInCart // Nombre total d'articles différents ou quantité totale?
+            ]);
+        }
 
         return redirect()->route('cart.index')->with('success', 'Article ajouté au panier avec succès !');
     }

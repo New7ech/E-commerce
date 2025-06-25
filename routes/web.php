@@ -81,6 +81,14 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // Moved individual routes
     Route::get('/factures/{facture}/pdf', [FactureController::class, 'genererPdf'])->name('factures.pdf');
+    // Note: CategorieController is already imported.
+});
+
+// Route publique pour afficher les produits d'une catégorie
+Route::get('/category/{category:slug}', [CategorieController::class, 'showPublic'])->name('public.categories.show');
+
+Route::get('/dashboard', function () {
+    $productCount = Article::count();
     Route::get('/statistiques', [StatistiqueController::class, 'index'])->name('statistiques.index');
 });
 
@@ -170,3 +178,11 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/custom-logout', [CustomLoginController::class, 'destroy'])->name('custom.logout');
 });
+
+// Routes pour les pages statiques
+use App\Http\Controllers\StaticPageController;
+Route::get('/mentions-legales', [StaticPageController::class, 'mentionsLegales'])->name('static.mentions-legales');
+Route::get('/conditions-generales-de-vente', [StaticPageController::class, 'cgv'])->name('static.cgv');
+Route::get('/politique-de-confidentialite', [StaticPageController::class, 'politiqueConfidentialite'])->name('static.politique-confidentialite');
+Route::get('/contactez-nous', [StaticPageController::class, 'contact'])->name('static.contact');
+Route::get('/promotions', [StaticPageController::class, 'promotions'])->name('static.promotions');
