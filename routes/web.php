@@ -33,7 +33,8 @@ use App\Models\User as UserModel; // Alias User model to avoid conflict with Use
 
 Route::get('/products', [ArticleController::class, 'productList'])->name('products.index');
 
-Route::get('/products/{id}', [ArticleController::class, 'productShow'])->name('products.show');
+// Modifié pour utiliser la méthode 'show' existante et l'injection de modèle implicite
+Route::get('/products/{article}', [ArticleController::class, 'show'])->name('products.show');
 
 // Cart Routes
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
