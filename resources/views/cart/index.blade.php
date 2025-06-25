@@ -6,7 +6,7 @@
 <div class="page-header">
     <h3 class="fw-bold mb-3">Panier d'Achat</h3>
     <ul class="breadcrumbs">
-        <li class="nav-home"><a href="{{ route('home') }}"><i class="icon-home"></i></a></li>
+        <li class="nav-home"><a href="#"><i class="icon-home"></i></a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
         <li class="nav-item"><a href="{{ route('products.index') }}">Produits</a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>

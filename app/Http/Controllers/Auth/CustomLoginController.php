@@ -52,12 +52,12 @@ class CustomLoginController extends Controller
 
             // Redirection basée sur le rôle de l'utilisateur.
             if ($user->hasRole('admin')) {
-                return redirect()->intended(route('admin.orders.index')); // Redirige les admins vers le tableau de bord admin.
+                return redirect()->intended(route('orders.index')); // Redirige les admins vers le tableau de bord admin.
             } elseif ($user->hasRole('client')) { // Suppose que 'client' est le rôle des utilisateurs standards.
-                return redirect()->intended(route('home')); // Redirige les clients vers la page d'accueil.
+                return redirect()->intended(route('/')); // Redirige les clients vers la page d'accueil.
             } else {
                 // Redirection par défaut si aucun rôle spécifique ne correspond ou pour d'autres rôles.
-                return redirect()->intended(route('home'));
+                return redirect()->intended(route('/'));
             }
         }
 
@@ -81,6 +81,6 @@ class CustomLoginController extends Controller
 
         $request->session()->regenerateToken(); // Régénère le jeton CSRF.
 
-        return redirect()->route('home'); // Redirige vers la page d'accueil après la déconnexion.
+        return redirect()->route('welcome'); // Redirige vers la page d'accueil après la déconnexion.
     }
 }
