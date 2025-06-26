@@ -107,38 +107,24 @@
                 <!-- Barre de recherche -->
                 <div class="w-full md:w-1/2 lg:w-1/3 mb-3 md:mb-0 relative">
                     <input type="text" placeholder="Rechercher un produit, une marque ou une catégorie..."
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-orange text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-orange"
                            data-testid="search-bar">
                     <!-- Suggestions dynamiques (à implémenter avec JS) -->
-                    <div class="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 hidden dark:bg-gray-700 dark:border-gray-600" id="search-suggestions">
+                    <div class="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 hidden" id="search-suggestions">
                         <!-- item: <a href="#" class="block px-4 py-2 hover:bg-gray-100">Suggestion 1</a> -->
                     </div>
                 </div>
 
                 <!-- Icônes utilisateur, panier, favoris -->
                 <div class="flex items-center space-x-4">
-                    @guest
-                        <a href="{{ route('custom.login') }}" class="text-gray-600 hover:text-primary-orange" aria-label="Mon compte" data-testid="icon-user-login">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                        </a>
-                    @else
-                        <a href="{{ route('profile.edit') }}" class="text-gray-600 hover:text-primary-orange" aria-label="Mon compte" data-testid="icon-user-profile">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                        </a>
-                        <form method="POST" action="{{ route('custom.logout') }}" class="inline">
-                            @csrf
-                            <button type="submit" class="text-gray-600 hover:text-primary-orange" aria-label="Déconnexion" data-testid="icon-user-logout">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                </svg>
-                            </button>
-                        </form>
-                    @endguest
+                    <a href="#" class="text-gray-600 hover:text-primary-orange" aria-label="Mon compte" data-testid="icon-user">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    </a>
                     <a href="{{ route('cart.index') }}" class="text-gray-600 hover:text-primary-orange relative" aria-label="Panier" data-testid="icon-cart">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                         <span class="absolute -top-2 -right-2 bg-primary-orange text-white text-xs rounded-full h-5 w-5 flex items-center justify-center" data-testid="cart-count">0</span> <!-- Mettre à jour dynamiquement -->
                     </a>
-                    <a href="{{ route('wishlist.index') }}" class="text-gray-600 hover:text-primary-orange" aria-label="Favoris" data-testid="icon-wishlist">
+                    <a href="#" class="text-gray-600 hover:text-primary-orange" aria-label="Favoris" data-testid="icon-wishlist">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </a>
                 </div>
@@ -147,14 +133,10 @@
             <!-- Menu catégories -->
             <nav class="mt-3 border-t border-gray-200 pt-3">
                 <ul class="flex flex-wrap justify-center md:justify-start space-x-4 md:space-x-6">
-                    @if(isset($categories) && $categories->count() > 0)
-                        @foreach($categories as $category)
-                            @if($category && !empty($category->slug)) {{-- Vérification supplémentaire --}}
-                                <li><a href="{{ route('public.categories.show', $category) }}" class="text-gray-700 hover:text-primary-orange font-semibold" data-testid="category-link-{{ $category->slug }}">{{ $category->name }}</a></li>
-                            @endif
-                        @endforeach
-                    @endif
-                     <li><a href="{{ route('static.promotions') }}" class="text-gray-700 hover:text-primary-orange font-semibold" data-testid="promotions-link">Promotions</a></li>
+                    @foreach($categories as $category)
+                        <li><a href="#" class="text-gray-700 hover:text-primary-orange font-semibold" data-testid="category-link-{{ $category->slug }}">{{ $category->name }}</a></li>
+                    @endforeach
+                     <li><a href="#" class="text-gray-700 hover:text-primary-orange font-semibold">Promotions</a></li>
                 </ul>
             </nav>
         </div>
@@ -167,35 +149,32 @@
         <section class="mb-12" data-testid="hero-section">
             <!-- Carrousel -->
             <div class="relative overflow-hidden rounded-lg shadow-lg mb-6 h-64 md:h-96 carousel" id="hero-carousel">
-                <!-- Slide 1 (Électronique) -->
+                <!-- Slide 1 -->
                 <div class="carousel-item min-w-full bg-primary-orange text-white flex items-center justify-center p-8">
                     <div class="text-center">
                         <h2 class="text-3xl md:text-5xl font-bold mb-4">Promo Incroyable!</h2>
                         <p class="text-lg md:text-xl mb-6">Jusqu'à -50% sur une sélection d'articles Électroniques.</p>
-                        @php $electroniqueCategory = $categories->firstWhere('slug', 'electronique'); @endphp
-                        <a href="{{ $electroniqueCategory ? route('public.categories.show', $electroniqueCategory) : route('static.promotions') }}" class="bg-white text-primary-orange font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition duration-300 text-lg" data-testid="cta-hero-1">
+                        <a href="#" class="bg-white text-primary-orange font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition duration-300 text-lg" data-testid="cta-hero-1">
                             Acheter maintenant &rarr;
                         </a>
                     </div>
                 </div>
-                <!-- Slide 2 (Mode) -->
+                <!-- Slide 2 -->
                 <div class="carousel-item min-w-full bg-primary-green text-white flex items-center justify-center p-8">
                      <div class="text-center">
                         <h2 class="text-3xl md:text-5xl font-bold mb-4">Nouvelle Collection Mode</h2>
                         <p class="text-lg md:text-xl mb-6">Découvrez les dernières tendances Faso Danfani.</p>
-                        @php $modeCategory = $categories->firstWhere('slug', 'mode'); @endphp
-                        <a href="{{ $modeCategory ? route('public.categories.show', $modeCategory) : route('static.promotions') }}" class="bg-white text-primary-green font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition duration-300 text-lg" data-testid="cta-hero-2">
+                        <a href="#" class="bg-white text-primary-green font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition duration-300 text-lg" data-testid="cta-hero-2">
                             Explorer &rarr;
                         </a>
                     </div>
                 </div>
-                <!-- Slide 3 (Agroalimentaire) -->
+                <!-- Slide 3 -->
                 <div class="carousel-item min-w-full bg-primary-gold text-gray-800 flex items-center justify-center p-8">
                      <div class="text-center">
                         <h2 class="text-3xl md:text-5xl font-bold mb-4">Produits du Terroir Frais</h2>
                         <p class="text-lg md:text-xl mb-6">Directement des producteurs locaux à votre table.</p>
-                        @php $agroCategory = $categories->firstWhere('slug', 'agroalimentaire'); @endphp
-                        <a href="{{ $agroCategory ? route('public.categories.show', $agroCategory) : route('static.promotions') }}" class="bg-gray-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition duration-300 text-lg" data-testid="cta-hero-3">
+                        <a href="#" class="bg-gray-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition duration-300 text-lg" data-testid="cta-hero-3">
                             Commander &rarr;
                         </a>
                     </div>
@@ -393,10 +372,10 @@
                 <div>
                     <h5 class="text-lg font-semibold mb-3">Liens Utiles</h5>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="{{ route('static.mentions-legales') }}" class="text-gray-400 hover:text-primary-orange">Mentions Légales</a></li>
-                        <li><a href="{{ route('static.cgv') }}" class="text-gray-400 hover:text-primary-orange">Conditions Générales de Vente</a></li>
-                        <li><a href="{{ route('static.politique-confidentialite') }}" class="text-gray-400 hover:text-primary-orange">Politique de Confidentialité</a></li>
-                        <li><a href="{{ route('static.contact') }}" class="text-gray-400 hover:text-primary-orange">Contactez-nous</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-orange">Mentions Légales</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-orange">Conditions Générales de Vente</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-orange">Politique de Confidentialité</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-orange">Contactez-nous</a></li>
                     </ul>
                 </div>
 
@@ -404,8 +383,8 @@
                 <div>
                     <h5 class="text-lg font-semibold mb-3">Newsletter</h5>
                     <p class="text-sm text-gray-400 mb-2">Recevez nos meilleures offres et nouveautés.</p>
-                    <form action="#" method="POST" class="mt-2"> {{-- TODO: Ajouter une route pour la soumission de la newsletter --}}
-                        <input type="email" placeholder="Votre email" class="w-full p-2 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-orange mb-2 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400" data-testid="newsletter-email" name="email">
+                    <form action="#" method="POST" class="mt-2">
+                        <input type="email" placeholder="Votre email" class="w-full p-2 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-orange mb-2" data-testid="newsletter-email">
                         <button type="submit" class="w-full bg-primary-orange hover:bg-opacity-90 text-white py-2 rounded-md font-semibold" data-testid="newsletter-submit">S'inscrire</button>
                     </form>
                 </div>
@@ -414,10 +393,9 @@
                 <div>
                     <h5 class="text-lg font-semibold mb-3">Suivez-nous</h5>
                     <div class="flex space-x-4 mb-4">
-                        {{-- Remplacer # par les vrais liens de réseaux sociaux --}}
-                        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-primary-orange" aria-label="Facebook"><svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg></a>
-                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-primary-orange" aria-label="Instagram"><svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.356.2-6.784 2.624-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.356 2.624 6.784 6.98 6.98 1.281.059 1.689.073 4.948.073 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.624 6.979-6.98.059-1.28.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.196-4.354-2.624-6.782-6.979-6.98-1.281-.059-1.69-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
-                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-primary-orange" aria-label="Twitter"><svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-.424.727-.666 1.581-.666 2.477 0 1.61.823 3.027 2.071 3.858-.764-.024-1.482-.232-2.11-.583v.06c0 2.256 1.606 4.135 3.737 4.568-.39.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.202-.005-.403-.014-.602.91-.658 1.7-1.475 2.323-2.408z"/></svg></a>
+                        <a href="#" class="text-gray-400 hover:text-primary-orange" aria-label="Facebook"><svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">...</svg></a> <!-- Remplacer ... par SVG path -->
+                        <a href="#" class="text-gray-400 hover:text-primary-orange" aria-label="Instagram"><svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">...</svg></a>
+                        <a href="#" class="text-gray-400 hover:text-primary-orange" aria-label="Twitter"><svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">...</svg></a>
                     </div>
                     <h5 class="text-md font-semibold mb-2 text-gray-300">Nos valeurs locales :</h5>
                     <div class="flex space-x-3 items-center text-gray-400">
@@ -632,77 +610,14 @@
         const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
         addToCartButtons.forEach(button => {
             button.addEventListener('click', function(event) {
-                event.preventDefault();
-                const productCard = this.closest('.product-card');
-                const productId = productCard.dataset.productId;
-                const url = `/cart/add/${productId}`; // Attention: Utiliser la génération de route Laravel serait mieux si possible ici.
-                                                    // Mais pour un script simple, une URL directe peut suffire.
-                                                    // Pour {{ route('cart.add', $article) }} il faudrait passer l'ID.
-
-                // Désactiver le bouton pour éviter les clics multiples
-                this.disabled = true;
-                this.textContent = 'Ajout...';
-
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}', // Fallback pour CSRF
-                        'Accept': 'application/json', // S'assurer que le serveur sait qu'on attend du JSON
-                        'X-Requested-With': 'XMLHttpRequest' // Laravel utilise ça pour $request->expectsJson()
-                    },
-                    body: JSON.stringify({ quantity: 1 }) // Envoyer la quantité si besoin, sinon le contrôleur prend 1 par défaut
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => { throw err; }); // Gérer les erreurs HTTP comme du JSON
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        // Mettre à jour le compteur du panier dans le header
-                        const cartCountElement = document.querySelector('[data-testid="cart-count"]');
-                        if (cartCountElement && data.cartTotalItems !== undefined) {
-                            cartCountElement.textContent = data.cartTotalItems;
-                        }
-                        // Afficher un toast de succès
-                        toastElement.textContent = data.success;
-                        toastElement.classList.add('show');
-                        setTimeout(() => toastElement.classList.remove('show'), 3000);
-                    } else if (data.error) {
-                         // Afficher un toast d'erreur
-                        toastElement.textContent = data.error;
-                        toastElement.style.backgroundColor = 'red'; // Temporairement pour distinguer l'erreur
-                        toastElement.classList.add('show');
-                        setTimeout(() => {
-                            toastElement.classList.remove('show');
-                            toastElement.style.backgroundColor = 'rgba(0,0,0,0.75)'; // Rétablir la couleur
-                        }, 4000);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error adding to cart:', error);
-                    let errorMessage = "Une erreur s'est produite.";
-                    if (error && error.error) { // Si l'erreur vient du JSON du serveur
-                        errorMessage = error.error;
-                    } else if (error && error.message) { // Erreur réseau ou autre
-                        errorMessage = error.message;
-                    }
-                     // Afficher un toast d'erreur générique
-                    toastElement.textContent = errorMessage;
-                    toastElement.style.backgroundColor = 'red';
-                    toastElement.classList.add('show');
-                    setTimeout(() => {
-                        toastElement.classList.remove('show');
-                        toastElement.style.backgroundColor = 'rgba(0,0,0,0.75)';
-                    }, 4000);
-                })
-                .finally(() => {
-                    // Réactiver le bouton
-                    this.disabled = false;
-                    this.textContent = 'Ajouter au panier';
-                });
+                event.preventDefault(); // Empêche le comportement par défaut si c'est un lien <a> ou un submit
+                const productId = this.closest('.product-card').dataset.productId;
+                alert(`Bouton "Ajouter au panier" cliqué pour le produit ID: ${productId}. Logique d'ajout à implémenter.`);
+                // Ici, vous ajouteriez la logique pour ajouter au panier (ex: appel AJAX)
+                // Exemple: fetch(`/cart/add/${productId}`, { method: 'POST', headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'} })
+                //    .then(response => response.json())
+                //    .then(data => console.log(data))
+                //    .catch(error => console.error('Error:', error));
             });
         });
 
