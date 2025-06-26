@@ -12,7 +12,6 @@ class UpdateRoleRequest extends FormRequest
      *
      * @var \Spatie\Permission\Models\Role
      */
-    protected $role;
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -28,28 +27,14 @@ class UpdateRoleRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Accéder au modèle de rôle via $this->route('role') est la méthode standard
+        // lorsque le model binding est utilisé dans la définition de la route.
+        $roleId = $this->route('role') ? $this->route('role')->id : null;
+
         return [
-            'name' => 'required|string|max:255,' . $this->role->id,
+            'name' => 'required|string|max:255|unique:roles,name,' . $roleId,
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'integer|exists:permissions,id', // Chaque permission doit être un ID existant
         ];
-    }
-
-    /**
-     * Set the role instance.
-     *
-     * @param \Spatie\Permission\Models\Role $role
-     */
-    public function setRole(Role $role)
-    {
-        $this->role = $role;
-    }
-
-    /**
-     * Get the role instance.
-     *
-     * @return \Spatie\Permission\Models\Role
-     */
-    public function getRole(): Role
-    {
-        return $this->role;
     }
 }

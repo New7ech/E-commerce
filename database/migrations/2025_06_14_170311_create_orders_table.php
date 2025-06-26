@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null'); // Nullable et onDelete('set null') pour garder la commande si user supprimé
+            $table->string('email')->nullable()->after('user_id'); // Email pour les invités ou copie pour user connecté
             $table->text('shipping_name');
             $table->text('shipping_address');
             $table->string('shipping_city');

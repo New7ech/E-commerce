@@ -21,8 +21,10 @@ class UpdateEmplacementRequest extends FormRequest
      */
     public function rules(): array
     {
+        $emplacementId = $this->emplacement ? $this->emplacement->id : null;
         return [
-            //
+            'name' => 'required|string|max:255|unique:emplacements,name,' . $emplacementId,
+            'description' => 'nullable|string|max:255',
         ];
     }
 }

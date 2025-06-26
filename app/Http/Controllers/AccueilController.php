@@ -27,43 +27,10 @@ class AccueilController extends Controller
         return view('welcome', compact('articles', 'categories'));
     }
 
-    // Les autres méthodes (create, store, show, edit, update, destroy)
-    // peuvent être supprimées si elles ne sont pas utilisées pour la nouvelle page d'accueil.
-    // Pour l'instant, nous les laissons commentées ou vides si elles étaient déjà ainsi.
-
-    /**
-     * Affiche le formulaire de création d'une nouvelle ressource.
-     * (Méthode actuellement non utilisée pour la page d'accueil)
-     */
-    // public function create() { }
-
-    /**
-     * Enregistre une nouvelle ressource dans la base de données.
-     * (Méthode actuellement non utilisée pour la page d'accueil)
-     */
-    // public function store(Request $request) { }
-
-    /**
-     * Affiche une ressource spécifique.
-     * (Méthode actuellement non utilisée pour la page d'accueil)
-     */
-    // public function show($id) { }
-
-    /**
-     * Affiche le formulaire de modification d'une ressource spécifique.
-     * (Méthode actuellement non utilisée pour la page d'accueil)
-     */
-    // public function edit($id) { }
-
-    /**
-     * Met à jour une ressource spécifique dans la base de données.
-     * (Méthode actuellement non utilisée pour la page d'accueil)
-     */
-    // public function update(Request $request, $id) { }
-
-    /**
-     * Supprime une ressource spécifique de la base de données.
-     * (Méthode actuellement non utilisée pour la page d'accueil)
-     */
-    // public function destroy($id) { }
+    // Les méthodes CRUD standard (create, store, show, edit, update, destroy)
+    // ne sont pas utilisées ici car ArticleController@welcome gère la page d'accueil
+    // et l'administration des articles se fait via ArticleController (pour l'admin).
+    // Ce contrôleur pourrait être réutilisé pour une autre section "accueil" ou supprimé
+    // s'il n'a plus d'utilité spécifique maintenant que ArticleController.welcome est la page principale.
+    // Pour l'instant, nous allons seulement supprimer les méthodes commentées.
 }

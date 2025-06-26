@@ -23,17 +23,19 @@ return new class extends Migration
             $table->string('client_email')->nullable();
 
             // Infos facture
+            $table->string('numero')->unique()->after('id'); // Ajout du numéro de facture
             $table->date('date_facture');
             $table->decimal('montant_ht', 10, 2);      // Hors taxe
-            $table->decimal('tva', 5, 2)->default(18); // TVA en %, exemple : 20%
+            $table->decimal('tva', 5, 2)->default(18); // TVA en %, exemple : 18%
             $table->decimal('montant_ttc', 10, 2);     // TTC = HT + TVA
 
             // Paiement
             $table->string('mode_paiement', 50)->nullable(); // Ex : carte, chèque, espèces
-            $table->string('statut_paiement', 50)->default('non payé'); // Ex : payé, partiel, en attente
+            $table->string('statut_paiement', 50)->default('impayé'); // Ex : impayé, payé, partiel
             $table->date('date_paiement')->nullable();
 
             $table->timestamps();
+            $table->softDeletes(); // Ajout de softDeletes
         });
 
     }

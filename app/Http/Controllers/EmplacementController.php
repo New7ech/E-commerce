@@ -42,12 +42,7 @@ class EmplacementController extends Controller
      */
     public function store(StoreEmplacementRequest $request): \Illuminate\Http\RedirectResponse
     {
-        // Il est préférable de déplacer toute la validation dans StoreEmplacementRequest.
-        // Pour l'instant, la validation est dupliquée ici pour s'assurer qu'elle est présente.
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255|unique:emplacements,name', // Nom requis, unique.
-            'description' => 'nullable|string|max:255', // Description optionnelle.
-        ]);
+        $validatedData = $request->validated();
 
         Emplacement::create($validatedData); // Crée l'emplacement.
 
@@ -86,12 +81,7 @@ class EmplacementController extends Controller
      */
     public function update(UpdateEmplacementRequest $request, Emplacement $emplacement): \Illuminate\Http\RedirectResponse
     {
-        // Il est préférable de déplacer toute la validation dans UpdateEmplacementRequest.
-        $validatedData = $request->validate([
-            // Nom requis, unique, sauf pour l'enregistrement actuel.
-            'name' => 'required|string|max:255|unique:emplacements,name,' . $emplacement->id,
-            'description' => 'nullable|string|max:255', // Description optionnelle.
-        ]);
+        $validatedData = $request->validated();
 
         $emplacement->update($validatedData); // Met à jour l'emplacement.
 

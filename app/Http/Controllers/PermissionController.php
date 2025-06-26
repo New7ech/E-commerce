@@ -39,17 +39,15 @@ class PermissionController extends Controller
     /**
      * Enregistre une nouvelle permission dans la base de données.
      *
-     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant le nom de la permission.
-     *                                         Utiliser StorePermissionRequest si des règles de validation plus complexes sont nécessaires.
+     * @param  \App\Http\Requests\StorePermissionRequest  $request La requête HTTP validée.
      * @return \Illuminate\Http\RedirectResponse Redirige vers la liste des permissions avec un message de succès.
      */
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(StorePermissionRequest $request): \Illuminate\Http\RedirectResponse
     {
-        // Valide que le nom de la permission est requis et unique.
-        $request->validate(['name' => 'required|unique:permissions,name']);
+        $validatedData = $request->validated();
 
         // Crée la permission. Le guard_name sera 'web' par défaut si non spécifié.
-        Permission::create(['name' => $request->name]);
+        Permission::create(['name' => $validatedData['name']]);
 
         return redirect()->route('permissions.index')
             ->with('success', 'Permission créée avec succès.');
@@ -69,17 +67,15 @@ class PermissionController extends Controller
     /**
      * Met à jour une permission spécifique dans la base de données.
      *
-     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant le nom de la permission.
-     *                                         Utiliser UpdatePermissionRequest si des règles de validation plus complexes sont nécessaires.
+     * @param  \App\Http\Requests\UpdatePermissionRequest  $request La requête HTTP validée.
      * @param  \Spatie\Permission\Models\Permission  $permission La permission à mettre à jour.
      * @return \Illuminate\Http\RedirectResponse Redirige vers la liste des permissions avec un message de succès.
      */
-    public function update(Request $request, Permission $permission): \Illuminate\Http\RedirectResponse
+    public function update(UpdatePermissionRequest $request, Permission $permission): \Illuminate\Http\RedirectResponse
     {
-        // Valide que le nom de la permission est requis et unique (sauf pour cette permission elle-même).
-        $request->validate(['name' => 'required|unique:permissions,name,' . $permission->id]);
+        $validatedData = $request->validated();
 
-        $permission->update(['name' => $request->name]); // Met à jour le nom de la permission.
+        $permission->update(['name' => $validatedData['name']]); // Met à jour le nom de la permission.
 
         return redirect()->route('permissions.index')
             ->with('success', 'Permission mise à jour avec succès.');
