@@ -8,7 +8,7 @@ use App\Http\Controllers\Auth\CustomLoginController;
 use App\Http\Controllers\Auth\CustomRegisterController;
 use App\Http\Controllers\Auth\CustomResetPasswordController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\CategorieController;
+use App\Http\Controllers\CategoryController; // Mise à jour du nom du contrôleur
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\EmplacementController;
 use App\Http\Controllers\FactureController;
@@ -48,7 +48,6 @@ Route::get('/products/{article}', [ArticleController::class, 'show'])->name('pro
 
 // Cart Routes
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-// Route::post('/cart/add/{article}', [CartController::class, 'add'])->name('cart.add'); // Moved to auth group
 Route::patch('/cart/update/{article}', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cart/remove/{article}', [CartController::class, 'remove'])->name('cart.remove');
 Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
@@ -74,23 +73,18 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('roles', RoleController::class);
     Route::resource('articles', ArticleController::class);
     Route::resource('permissions', PermissionController::class);
-    Route::resource('categories', CategorieController::class);
+    Route::resource('categories', CategoryController::class); // Mise à jour du contrôleur
     Route::resource('fournisseurs', FournisseurController::class);
     Route::resource('emplacements', EmplacementController::class);
-    Route::resource('factures', FactureController::class); // This will also name factura.show, edit, update, destroy to admin.factures.*
+    Route::resource('factures', FactureController::class);
 
     // Moved individual routes
     Route::get('/factures/{facture}/pdf', [FactureController::class, 'genererPdf'])->name('factures.pdf');
-    // Note: CategorieController is already imported.
+    Route::get('/statistiques', [StatistiqueController::class, 'index'])->name('statistiques.index');
 });
 
 // Route publique pour afficher les produits d'une catégorie
-Route::get('/category/{category:slug}', [CategorieController::class, 'showPublic'])->name('public.categories.show');
-
-Route::get('/dashboard', function () {
-    $productCount = Article::count();
-    Route::get('/statistiques', [StatistiqueController::class, 'index'])->name('statistiques.index');
-});
+Route::get('/category/{category:slug}', [CategoryController::class, 'showPublic'])->name('public.categories.show'); // Mise à jour
 
 Route::get('/dashboard', function () {
     $productCount = Article::count();
@@ -124,16 +118,9 @@ Route::middleware('auth')->group(function () {
     Route::put('user/password', [PasswordController::class, 'update'])->name('password.update');
 });
 
-// require __DIR__.'/auth.php'; // Commented out to disable default Breeze/UI auth routes
+// require __DIR__.'/auth.php'; // Les routes d'authentification Breeze par défaut sont désactivées au profit des routes personnalisées.
 
-
-// `accueil` resource route remains public as its index serves the homepage.
-// Other methods (create, edit, etc.) if they exist and are admin-only would need separate admin routes or controller logic.
-// Route::resource('accueil', AccueilController::class); // Commenting out if new welcome page replaces this
-// Ensure the primary GET / route is explicitly named 'home' and points to AccueilController@index
-// Route::get('/', [App\Http\Controllers\AccueilController::class, 'index'])->name('home'); // Commenting out old home route
-
-// Nouvelle route pour la page d'accueil utilisant ArticleController@welcome
+// Nouvelle route pour la page d'accueil
 Route::get('/', [ArticleController::class, 'welcome'])->name('homepage');
 
 

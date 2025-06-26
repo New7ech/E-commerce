@@ -22,7 +22,9 @@ class StoreRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255|unique:roles,name',
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'integer|exists:permissions,id', // Chaque permission doit être un ID existant
         ];
     }
 }

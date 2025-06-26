@@ -40,25 +40,19 @@ class RoleController extends Controller
     /**
      * Enregistre un nouveau rôle dans la base de données et synchronise les permissions associées.
      *
-     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant le nom du rôle et les permissions.
-     *                                         Utiliser StoreRoleRequest si des règles de validation plus complexes sont nécessaires.
+     * @param  \App\Http\Requests\StoreRoleRequest  $request La requête HTTP validée.
      * @return \Illuminate\Http\RedirectResponse Redirige vers la liste des rôles avec un message de succès.
      */
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(StoreRoleRequest $request): \Illuminate\Http\RedirectResponse
     {
-        // Valide que le nom du rôle est requis et unique.
-        $request->validate(['name' => 'required|unique:roles,name']);
+        $validatedData = $request->validated();
 
-        $role = Role::create(['name' => $request->name]); // Crée le rôle.
+        $role = Role::create(['name' => $validatedData['name']]); // Crée le rôle.
 
-        // Vérifie que les permissions fournies existent avant de les synchroniser.
-        // Ceci évite des erreurs si des IDs de permission invalides sont envoyés.
-        if ($request->has('permissions') && is_array($request->permissions)) {
-            $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
-            $role->syncPermissions($validPermissions); // Synchronise les permissions du rôle.
-        } else {
-            $role->syncPermissions([]); // Si aucune permission n'est fournie, retire toutes les permissions existantes.
-        }
+        // Synchronise les permissions du rôle.
+        // validated() s'assure que 'permissions' est un tableau d'IDs valides si présent.
+        $permissionsToSync = $validatedData['permissions'] ?? [];
+        $role->syncPermissions($permissionsToSync);
 
         return redirect()->route('roles.index')
             ->with('success', 'Rôle créé avec succès.');
@@ -81,25 +75,19 @@ class RoleController extends Controller
     /**
      * Met à jour un rôle spécifique dans la base de données et synchronise ses permissions.
      *
-     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant le nom du rôle et les permissions.
-     *                                         Utiliser UpdateRoleRequest si des règles de validation plus complexes sont nécessaires.
+     * @param  \App\Http\Requests\UpdateRoleRequest  $request La requête HTTP validée.
      * @param  \Spatie\Permission\Models\Role  $role Le rôle à mettre à jour.
      * @return \Illuminate\Http\RedirectResponse Redirige vers la liste des rôles avec un message de succès.
      */
-    public function update(Request $request, Role $role): \Illuminate\Http\RedirectResponse
+    public function update(UpdateRoleRequest $request, Role $role): \Illuminate\Http\RedirectResponse
     {
-        // Valide que le nom du rôle est requis et unique (sauf pour ce rôle lui-même).
-        $request->validate(['name' => 'required|unique:roles,name,' . $role->id]);
+        $validatedData = $request->validated();
 
-        $role->update(['name' => $request->name]); // Met à jour le nom du rôle.
+        $role->update(['name' => $validatedData['name']]); // Met à jour le nom du rôle.
 
-        // Vérifie et synchronise les permissions.
-        if ($request->has('permissions') && is_array($request->permissions)) {
-            $validPermissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
-            $role->syncPermissions($validPermissions);
-        } else {
-            $role->syncPermissions([]); // Si aucune permission n'est cochée/envoyée, retire toutes les permissions.
-        }
+        // Synchronise les permissions du rôle.
+        $permissionsToSync = $validatedData['permissions'] ?? [];
+        $role->syncPermissions($permissionsToSync);
 
         return redirect()->route('roles.index')
             ->with('success', 'Rôle mis à jour avec succès.');

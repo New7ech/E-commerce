@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Requests\StoreFactureRequest;
+use App\Http\Requests\UpdateFactureRequest;
 use App\Notifications\StockLowNotification;
 use Illuminate\Support\Facades\Notification;
 use App\Models\User;
@@ -59,28 +61,18 @@ class FactureController extends Controller
      * Enregistre une nouvelle facture dans la base de données.
      * Calcule les montants, décrémente les stocks, et génère un PDF de la facture.
      *
-     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant les données de la facture.
+     * @param  \App\Http\Requests\StoreFactureRequest  $request La requête HTTP validée contenant les données de la facture.
      * @return \Symfony\Component\HttpFoundation\Response|\Illuminate\Http\RedirectResponse Le PDF de la facture ou une redirection en cas d'erreur.
      */
-    public function store(Request $request) // Le type de retour peut être Response pour le PDF.
+    public function store(StoreFactureRequest $request) // Le type de retour peut être Response pour le PDF.
     {
-        // Valide les données de la requête.
-        $validated = $request->validate([
-            'client_nom' => 'required|string|max:255', // Nom du client (rendu obligatoire).
-            'client_prenom' => 'nullable|string|max:255', // Prénom du client.
-            'client_adresse' => 'nullable|string|max:255', // Adresse du client.
-            'client_telephone' => 'nullable|string|max:20', // Téléphone du client.
-            'client_email' => 'nullable|email|max:255', // Email du client.
-            'statut_paiement' => 'required|in:impayé,payé', // Statut du paiement.
-            'mode_paiement' => 'nullable|string', // Mode de paiement.
-            'articles' => 'required|array', // Liste des articles (obligatoire).
-            'articles.*.article_id' => 'required|exists:articles,id', // Chaque article doit exister.
-            'articles.*.quantity' => 'required|integer|min:1', // Quantité minimale de 1 pour chaque article.
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction(); // Démarre une transaction de base de données.
 
         try {
+            // $articlesData = $validated['articles']; // Déjà inclus dans $validated
+            // Pour la clarté, on peut extraire :
             $articlesData = $validated['articles'];
             $montantHTTotal = 0;
             $details = []; // Pour stocker les détails des lignes de facture pour le PDF.
@@ -199,25 +191,13 @@ class FactureController extends Controller
      * Met à jour une facture spécifique dans la base de données.
      * Recalcule les montants et met à jour les stocks si les articles sont modifiés.
      *
-     * @param  \Illuminate\Http\Request  $request La requête HTTP contenant les données de mise à jour.
+     * @param  \App\Http\Requests\UpdateFactureRequest  $request La requête HTTP validée contenant les données de mise à jour.
      * @param  \App\Models\Facture  $facture La facture à mettre à jour.
      * @return \Illuminate\Http\RedirectResponse Redirige vers la liste des factures avec un message de succès ou d'erreur.
      */
-    public function update(Request $request, Facture $facture): \Illuminate\Http\RedirectResponse
+    public function update(UpdateFactureRequest $request, Facture $facture): \Illuminate\Http\RedirectResponse
     {
-        // Valide les données de la requête.
-        $validated = $request->validate([
-            'client_nom' => 'nullable|string|max:255',
-            'client_prenom' => 'nullable|string|max:255',
-            'client_adresse' => 'nullable|string|max:255',
-            'client_telephone' => 'nullable|string|max:20',
-            'client_email' => 'nullable|email|max:255',
-            'statut_paiement' => 'required|in:impayé,payé',
-            'mode_paiement' => 'nullable|string',
-            'articles' => 'nullable|array', // Les articles peuvent être facultatifs lors de la mise à jour si seule le statut change.
-            'articles.*.article_id' => 'required_with:articles|exists:articles,id', // Requis si 'articles' est présent.
-            'articles.*.quantity' => 'required_with:articles|integer|min:1', // Requis si 'articles' est présent.
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction(); // Démarre une transaction.
 

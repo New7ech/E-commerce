@@ -42,19 +42,7 @@ class FournisseurController extends Controller
      */
     public function store(StoreFournisseurRequest $request): \Illuminate\Http\RedirectResponse
     {
-        // Il est préférable de déplacer toute la validation dans StoreFournisseurRequest.
-        // Pour l'instant, la validation est ici pour s'assurer qu'elle est présente.
-        // $request->validated() devrait être utilisé si StoreFournisseurRequest gère toutes les règles.
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255|unique:fournisseurs,name', // Nom du contact/représentant du fournisseur
-            'description' => 'nullable|string', // Description optionnelle du fournisseur
-            'nom_entreprise' => 'required|string|max:255', // Nom officiel de l'entreprise fournisseur
-            'adresse' => 'required|string|max:255', // Adresse postale
-            'telephone' => 'required|string|max:20', // Numéro de téléphone
-            'email' => 'required|email|unique:fournisseurs,email', // Adresse e-mail, unique
-            'ville' => 'required|string|max:255', // Ville
-            'pays' => 'required|string|max:255', // Pays
-        ]);
+        $validatedData = $request->validated();
 
         Fournisseur::create($validatedData); // Crée le fournisseur.
 
@@ -96,20 +84,7 @@ class FournisseurController extends Controller
      */
     public function update(UpdateFournisseurRequest $request, Fournisseur $fournisseur): \Illuminate\Http\RedirectResponse
     {
-        // Il est préférable de déplacer toute la validation dans UpdateFournisseurRequest.
-        // $request->validated() devrait être utilisé si UpdateFournisseurRequest gère toutes les règles.
-        $validatedData = $request->validate([
-            // Nom unique, sauf pour l'enregistrement actuel.
-            'name' => 'required|string|max:255|unique:fournisseurs,name,' . $fournisseur->id,
-            'description' => 'nullable|string',
-            'nom_entreprise' => 'required|string|max:255',
-            'adresse' => 'required|string|max:255',
-            'telephone' => 'required|string|max:20',
-            // Email unique, sauf pour l'enregistrement actuel.
-            'email' => 'required|email|unique:fournisseurs,email,' . $fournisseur->id,
-            'ville' => 'required|string|max:255',
-            'pays' => 'required|string|max:255',
-        ]);
+        $validatedData = $request->validated();
 
         $fournisseur->update($validatedData); // Met à jour le fournisseur.
 

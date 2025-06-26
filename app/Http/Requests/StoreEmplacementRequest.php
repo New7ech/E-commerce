@@ -22,7 +22,8 @@ class StoreEmplacementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255|unique:emplacements,name',
+            'description' => 'nullable|string|max:255',
         ];
     }
 }
