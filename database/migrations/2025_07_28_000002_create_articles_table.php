@@ -25,7 +25,14 @@ return new class extends Migration
             $table->boolean('available_for_click_and_collect')->default(false);
             $table->unsignedInteger('view_count')->default(0);
             $table->decimal('rating', 2, 1)->nullable(); // e.g., 4.5
+            $table->foreignId('fournisseur_id')->nullable()->constrained('fournisseurs')->nullOnDelete();
+            $table->foreignId('emplacement_id')->nullable()->constrained('emplacements')->nullOnDelete();
             $table->timestamps();
+
+            // Ajout des index
+            $table->index('title');
+            $table->index('price');
+            $table->index('created_at');
         });
     }
 

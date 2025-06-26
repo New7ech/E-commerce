@@ -13,21 +13,6 @@ use Illuminate\Support\Facades\Session;
 class CartController extends Controller
 {
     /**
-     * Constructeur du contrôleur.
-     * S'assure que la session PHP est démarrée, bien que Laravel gère généralement cela automatiquement
-     * via le middleware StartSession. Ce constructeur explicite peut être redondant.
-     */
-    public function __construct()
-    {
-        // S'assurer que la session est démarrée.
-        // Note : Laravel démarre généralement la session via son middleware.
-        // Cette vérification manuelle est souvent inutile dans un contexte Laravel standard.
-        if (session_status() == PHP_SESSION_NONE && !app()->runningInConsole() && !app()->runningUnitTests()) {
-             session_start();
-        }
-    }
-
-    /**
      * Affiche les articles présents dans le panier.
      * Récupère les articles de la session, calcule le total et affiche la vue du panier.
      *

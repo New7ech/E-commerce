@@ -22,7 +22,14 @@ class StoreFournisseurRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255', // Nom du contact/représentant du fournisseur
+            'description' => 'nullable|string',
+            'nom_entreprise' => 'required|string|max:255',
+            'adresse' => 'required|string|max:255',
+            'telephone' => 'required|string|max:20',
+            'email' => 'required|email|unique:fournisseurs,email',
+            'ville' => 'required|string|max:255',
+            'pays' => 'required|string|max:255',
         ];
     }
 }

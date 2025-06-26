@@ -3,93 +3,133 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\Categorie;
 use Illuminate\Http\Request;
-// Si vous avez créé des Requests spécifiques, décommentez et utilisez-les
-// use App\Http\Requests\StoreArticleRequest;
-// use App\Http\Requests\UpdateArticleRequest;
+use App\Http\Requests\StoreArticleRequest;
+use App\Http\Requests\UpdateArticleRequest;
+use Illuminate\Support\Facades\Storage;
 
 class ArticleController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Affiche une liste des articles pour la gestion administrative.
+     *
+     * @return \Illuminate\View\View
      */
     public function index()
     {
-        // Logique existante pour la vue d'index admin/backend des articles
-        // Pour la page d'accueil, nous allons créer une méthode dédiée ou utiliser un autre contrôleur.
-        // Cependant, la demande spécifie "ArticleController et une route GET / pour charger la vue d’accueil"
-        // Donc, nous allons adapter cette méthode ou créer une nouvelle méthode pour la page d'accueil.
-        // Pour l'instant, gardons la logique admin ici.
-        $articles = Article::latest()->paginate(10); // Exemple pour une liste d'articles admin
+        // Récupère les articles paginés pour l'interface d'administration
+        $articles = Article::with('category')->latest()->paginate(10);
         return view('articles.index', compact('articles'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Affiche le formulaire de création d'un nouvel article (admin).
+     *
+     * @return \Illuminate\View\View
      */
     public function create()
     {
-        // Logique pour afficher le formulaire de création d'article (admin)
-        return view('articles.create');
+        $categories = Categorie::all();
+        $fournisseurs = \App\Models\Fournisseur::all(); // Assurez-vous que le modèle Fournisseur existe
+        $emplacements = \App\Models\Emplacement::all(); // Assurez-vous que le modèle Emplacement existe
+        return view('articles.create', compact('categories', 'fournisseurs', 'emplacements'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Enregistre un nouvel article dans la base de données (admin).
+     *
+     * @param  \App\Http\Requests\StoreArticleRequest  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
-    // public function store(StoreArticleRequest $request) // Utilisez StoreArticleRequest si défini
-    public function store(Request $request)
+    public function store(StoreArticleRequest $request)
     {
-        // Logique pour enregistrer un nouvel article (admin)
-        // $validatedData = $request->validated(); // Si vous utilisez StoreArticleRequest
-        // Article::create($validatedData);
-        // return redirect()->route('articles.index')->with('success', 'Article créé avec succès.');
-        return redirect()->route('articles.index'); // Placeholder
+        $validatedData = $request->validated();
+
+        if ($request->hasFile('image_path')) {
+            $path = $request->file('image_path')->store('articles_images', 'public');
+            $validatedData['image_path'] = $path;
+        }
+
+        // Assurez-vous que les noms de champs correspondent à la base de données et au modèle Article.
+        // Les FormRequests utilisent 'name', 'prix', 'quantite'.
+        // Si le modèle utilise 'title', 'price', 'stock', il faudra mapper ici ou changer les FormRequests/modèle.
+        // Pour l'instant, on suppose une correspondance directe ou que le modèle gère l'aliasing via $fillable.
+        Article::create($validatedData);
+
+        return redirect()->route('admin.articles.index')->with('success', 'Article créé avec succès.');
     }
 
     /**
-     * Display the specified resource.
+     * Affiche un article spécifique (utilisé publiquement).
+     *
+     * @param  \App\Models\Article  $article
+     * @return \Illuminate\View\View
      */
     public function show(Article $article)
     {
-        // Logique pour afficher un article spécifique (peut être utilisé pour le front aussi)
+        // Charge la catégorie pour l'affichage
+        $article->load('category');
         return view('articles.show', compact('article'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Affiche le formulaire de modification d'un article (admin).
+     *
+     * @param  \App\Models\Article  $article
+     * @return \Illuminate\View\View
      */
     public function edit(Article $article)
     {
-        // Logique pour afficher le formulaire d'édition d'article (admin)
-        return view('articles.edit', compact('article'));
+        $categories = Categorie::all();
+        $fournisseurs = \App\Models\Fournisseur::all();
+        $emplacements = \App\Models\Emplacement::all();
+        return view('articles.edit', compact('article', 'categories', 'fournisseurs', 'emplacements'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Met à jour un article spécifique dans la base de données (admin).
+     *
+     * @param  \App\Http\Requests\UpdateArticleRequest  $request
+     * @param  \App\Models\Article  $article
+     * @return \Illuminate\Http\RedirectResponse
      */
-    // public function update(UpdateArticleRequest $request, Article $article) // Utilisez UpdateArticleRequest si défini
-    public function update(Request $request, Article $article)
+    public function update(UpdateArticleRequest $request, Article $article)
     {
-        // Logique pour mettre à jour un article (admin)
-        // $validatedData = $request->validated(); // Si vous utilisez UpdateArticleRequest
-        // $article->update($validatedData);
-        // return redirect()->route('articles.index')->with('success', 'Article mis à jour avec succès.');
-        return redirect()->route('articles.index'); // Placeholder
+        $validatedData = $request->validated();
+
+        if ($request->hasFile('image_path')) {
+            // Supprimer l'ancienne image si elle existe
+            if ($article->image_path) {
+                Storage::disk('public')->delete($article->image_path);
+            }
+            $path = $request->file('image_path')->store('articles_images', 'public');
+            $validatedData['image_path'] = $path;
+        }
+
+        $article->update($validatedData);
+
+        return redirect()->route('admin.articles.index')->with('success', 'Article mis à jour avec succès.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Supprime un article spécifique de la base de données (admin).
+     *
+     * @param  \App\Models\Article  $article
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Article $article)
     {
-        // Logique pour supprimer un article (admin)
-        // $article->delete();
-        // return redirect()->route('articles.index')->with('success', 'Article supprimé avec succès.');
-        return redirect()->route('articles.index'); // Placeholder
+        // Supprimer l'image associée si elle existe
+        if ($article->image_path) {
+            Storage::disk('public')->delete($article->image_path);
+        }
+        $article->delete();
+        return redirect()->route('admin.articles.index')->with('success', 'Article supprimé avec succès.');
     }
 
     /**
-     * Display the homepage with paginated articles.
+     * Affiche la page d'accueil avec les articles paginés.
      * Cette méthode sera utilisée pour la route GET /
      */
     public function welcome()
@@ -100,8 +140,43 @@ class ArticleController extends Controller
 
         // Vous pouvez ajouter d'autres données ici si nécessaire pour la vue welcome
         // Par exemple, les catégories pour le menu, les promotions, etc.
-        $categories = \App\Models\Category::all(); // Exemple
+        $categories = Categorie::all(); // Utiliser l'alias Categorie déjà importé
 
         return view('welcome', compact('articles', 'categories'));
+    }
+
+    /**
+     * Affiche une liste publique des produits, paginée.
+     * Peut être utilisé pour une page "Tous les produits".
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\View\View
+     */
+    public function productList(Request $request)
+    {
+        // Logique de filtrage et de tri potentielle ici basée sur $request
+        // Exemple simple :
+        $query = Article::with('category')->orderBy('created_at', 'desc');
+
+        // Exemple de filtre par catégorie si un paramètre 'category' est présent dans la requête
+        if ($request->has('category')) {
+            $query->where('category_id', $request->input('category'));
+        }
+
+        // Exemple de recherche simple
+        if ($request->has('search')) {
+            $searchTerm = $request->input('search');
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%") // Assumant que 'name' est le champ titre
+                  ->orWhere('description', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        $articles = $query->paginate(15); // Paginer par 15 articles
+        $categories = Categorie::all();
+
+        // Cette vue pourrait être 'products.index' ou une autre vue dédiée
+        // Pour l'instant, nous allons supposer qu'il existe une vue resources/views/products/index.blade.php
+        return view('products.index', compact('articles', 'categories'));
     }
 }
